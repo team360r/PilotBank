@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/flight-plan/quiz
+title: "Quiz: Filing Your Flight Plan"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Filing Your Flight Plan
+
+Test your understanding of Chapter 1 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={1}>
+
+<QuizQuestion
+  question="Which element of a good prompt tells the AI what syntax and type system to use?"
+  options={[
+    "Fields with types",
+    "Constraints",
+    "Language and framework",
+    "What NOT to do"
+  ]}
+  correctIndex={2}
+  explanation="Stating the language and framework (e.g., 'Create a Dart data model') tells the AI which syntax, conventions, and type system to use. Without this, the AI may generate code in the wrong language entirely."
+/>
+
+<QuizQuestion
+  question="What is the main advantage of using comments as prompts for code generation?"
+  options={[
+    "Comments generate better code than the chat panel",
+    "The comment stays as documentation, the AI has full file context, and you stay in your editor",
+    "Comments bypass the AI tool's token limits",
+    "Comments are the only way to generate Dart code"
+  ]}
+  correctIndex={1}
+  explanation="Comments-as-prompts keep you in your editor (faster feedback), give the AI full file context (imports, other classes), and the comment remains as documentation after the code is generated."
+/>
+
+<QuizQuestion
+  question="A developer prompts: 'make me a model for my app'. What is wrong with this prompt?"
+  options={[
+    "It should say 'please' to get better results",
+    "It does not specify language, class name, fields, types, or constraints — the AI will guess everything",
+    "Nothing is wrong — the AI will ask clarifying questions",
+    "It should be typed as a comment, not in the chat panel"
+  ]}
+  correctIndex={1}
+  explanation="The prompt is missing all five elements: language/framework, what you are building, fields with types, constraints, and exclusions. The AI will produce something, but it will be based on guesses rather than your actual requirements."
+/>
+
+<QuizQuestion
+  question="When is the chat panel more appropriate than inline completions?"
+  options={[
+    "When generating a single data model class",
+    "When completing a line of code you have already started",
+    "When you need multi-file generation, explanations, or back-and-forth refinement",
+    "The chat panel is always better than inline completions"
+  ]}
+  correctIndex={2}
+  explanation="The chat panel excels at multi-file generation, complex logic requiring discussion, and situations where you need explanations. Inline completions are faster for single functions, models, and small additions where a one-line comment suffices as the prompt."
+/>
+
+<QuizQuestion
+  question="What is the 'Fly-by-Night' anti-pattern?"
+  options={[
+    "Writing prompts late at night when you are tired",
+    "Using AI tools that are not officially supported by your team",
+    "Writing vague, unscoped prompts without types or constraints, then accepting whatever comes back",
+    "Generating too much code in a single day"
+  ]}
+  correctIndex={2}
+  explanation="Fly-by-Night means filing a prompt without a plan — no types, no constraints, no exclusions. The result is vague output that requires extensive rework, defeating the purpose of using AI assistance."
+/>
+
+<QuizQuestion
+  question="Why should you include 'what NOT to do' in your prompts?"
+  options={[
+    "To make the prompt longer so the AI takes it more seriously",
+    "Because AI tools tend to add extras like JSON serialisation and factory constructors that you may not want",
+    "To test whether the AI can follow negative instructions",
+    "Exclusions have no practical effect on AI output"
+  ]}
+  correctIndex={1}
+  explanation="AI tools are trained on code that frequently includes serialisation, toString, hashCode, and other boilerplate. Without explicit exclusions, the AI will often add features you did not ask for, creating unnecessary code to review and potentially maintain."
+/>
+
+</Quiz>

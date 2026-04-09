@@ -5,16 +5,334 @@ title: "Chapter 1: Filing Your Flight Plan"
 description: "Learn effective prompting for Flutter code generation."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 1: Filing Your Flight Plan
 
-> *"A goal without a plan is just a wish."* — Antoine de Saint-Exupery
+> *"No pilot files a flight plan that says 'go somewhere nice.' Specificity saves lives."*
 
 **Estimated time:** ~25 min | **AI skill focus:** Prompt engineering | **Branch:** `chapter-1-flight-plan`
 
-**Anti-pattern:** Fly-by-Night — Prompts are vague, unstructured, and produce poor results.
+**Anti-pattern:** Fly-by-Night — Prompts are vague, unscoped, and produce vague code.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: Anatomy of a Prompt
+
+This is the single most important skill in AI-assisted development: writing prompts that produce the code you actually want.
+
+Watch what happens with a vague prompt versus a precise one.
+
+### The bad prompt
+
+> "make a banking app model"
+
+What comes back? Something like a 200-line `BankingModel` class with fields for account number, routing number, SWIFT code, balance, overdraft limit, interest rate, joint account holder names, branch address... none of which match your actual data requirements. You spend longer deleting the wrong parts than you would have spent writing it yourself.
+
+### The good prompt
+
+> "Create a Dart data model for a Transaction with: id (String), accountId (String), amount (double), description (String), date (DateTime), type (enum: credit/debit). Use const constructor, named required parameters. No JSON serialisation, no factory constructors."
+
+What comes back? Exactly what you asked for. One class, six fields, correct types, correct constructor style, nothing extra.
+
+The difference is not AI quality — it is prompt quality. A precise prompt constrains the AI's output to what you actually need.
+
+### The five parts of an effective prompt
+
+Every good code-generation prompt includes these elements:
+
+<div className="pb-step">
+  <div className="pb-step__badge">1</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Language and framework</div>
+
+State the language explicitly. "Create a **Dart** data model" tells the AI which syntax, conventions, and type system to use. Without this, you might get TypeScript, Python, or a generic pseudocode response.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">2</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">What you are building</div>
+
+Name the thing. "for a **Transaction**" scopes the output to a single, focused class. Compare this with "make a banking app model" which gives the AI no clear target.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">3</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Fields with types</div>
+
+List every field and its type explicitly. "**id (String), accountId (String), amount (double)**" leaves no room for the AI to guess. If you leave types out, the AI will choose them — and it will often choose wrong.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">4</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Constraints</div>
+
+Specify patterns and conventions. "**const constructor, named required parameters**" tells the AI how to build the constructor. Without constraints, you get whatever the AI's training data says is most common — which may not match your project.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">5</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">What NOT to do</div>
+
+Exclusions are as important as inclusions. "**No JSON serialisation, no factory constructors**" prevents the AI from adding features you did not ask for. AI tools love adding extras — serialisation, `toString`, `hashCode`, `operator ==`, `fromMap`, `toMap`. Tell it what to leave out.
+
+  </div>
+</div>
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Cross-Check</div>
+  <p>
+    Next time you write a prompt, check it against all five elements. If you are
+    missing two or more, rewrite the prompt before submitting it. The time spent
+    writing a precise prompt is always less than the time spent fixing vague output.
+  </p>
+</div>
+
+---
+
+## Section 2: Comments as Prompts
+
+Here is the most underused prompting technique in AI-assisted development: writing a comment and letting the AI complete the code below it.
+
+Most developers only interact with their AI tool through the chat panel. But inline completions — triggered by comments — are faster for simple, well-defined code generation tasks.
+
+Try this. Open a new Dart file and type:
+
+```dart
+// A User model with id (String), name (String), email (String).
+// Use const constructor with named required parameters.
+```
+
+Then press Enter and wait. Your AI tool should suggest the complete `User` class below the comment. The comment acts as the prompt, and the AI reads it as context for what should come next.
+
+**Why this works so well:**
+
+- The comment stays in your code as documentation
+- The AI has the full file context (imports, other classes) alongside your instruction
+- You can iterate — adjust the comment, delete the suggestion, and let the AI try again
+- It is faster than switching to a chat panel and copying code back
+
+**When to use comments as prompts:**
+
+- Data models and simple classes
+- Individual functions with clear input/output
+- Enum definitions
+- Configuration objects
+
+**When comments are NOT enough:**
+
+- Multi-file generation (the AI needs to see multiple files)
+- Complex logic requiring back-and-forth discussion
+- When you need the AI to explain its reasoning
+
+---
+
+## Section 3: Build the Data Models
+
+Time to put prompting into practice. PilotBank needs four data models and two enums. You will create them in `lib/data/models.dart`.
+
+<DualPath exercise="data-models">
+  <Manual>
+
+**By hand (~20 min):**
+
+Create `lib/data/models.dart` with the following:
+
+1. An `AccountType` enum with values: `current`, `savings`, `credit`
+2. A `TransactionType` enum with values: `credit`, `debit`
+3. A `User` class with fields: `id` (String), `name` (String), `email` (String) — all final, const constructor, named required parameters
+4. An `Account` class with fields: `id` (String), `name` (String), `type` (AccountType), `balance` (double) — all final, const constructor, named required parameters
+5. A `Transaction` class with fields: `id` (String), `accountId` (String), `amount` (double), `description` (String), `date` (DateTime), `type` (TransactionType) — all final, const constructor, named required parameters
+6. An `AppNotification` class with fields: `id` (String), `title` (String), `body` (String), `timestamp` (DateTime), `read` (bool, defaults to false) — all final, const constructor, named required parameters except `read`
+
+That is 4 classes, 2 enums, and careful attention to which parameters are required versus optional with defaults. By hand this takes practice with Dart's constructor syntax.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+Prompt for each model one at a time. Do not ask for all four in a single prompt — that gives the AI too much freedom to make structural decisions.
+
+**Prompt 1 — Enums:**
+
+> "Create two Dart enums for a banking app: AccountType with values current, savings, credit. TransactionType with values credit, debit."
+
+**Prompt 2 — User:**
+
+> "Create a Dart data model class called User with fields: id (String), name (String), email (String). All fields final. Use const constructor with named required parameters. No JSON serialisation, no factory constructors, no methods."
+
+**Prompt 3 — Account:**
+
+> "Create a Dart data model class called Account with fields: id (String), name (String), type (AccountType), balance (double). All fields final. Use const constructor with named required parameters."
+
+**Prompt 4 — Transaction:**
+
+> "Create a Dart data model class called Transaction with fields: id (String), accountId (String), amount (double), description (String), date (DateTime), type (TransactionType). All fields final. Use const constructor with named required parameters."
+
+**Prompt 5 — AppNotification:**
+
+> "Create a Dart data model class called AppNotification with fields: id (String), title (String), body (String), timestamp (DateTime), read (bool, default false). All fields final. Use const constructor with named required parameters except read which has a default value."
+
+Assemble all the outputs into a single `lib/data/models.dart` file. Add a doc comment at the top: `/// PilotBank data models.`
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `models.dart` file against this checklist:
+
+- Both enums are defined as separate top-level types (not nested inside a class)
+- All class fields are marked `final`
+- All constructors use `const`
+- All constructors use named parameters with `required` (except `read` in `AppNotification`)
+- `AppNotification.read` has a default value of `false` using `this.read = false`
+- `AccountType` uses `current` (not `checking` — we are using British banking terminology)
+- No `toString`, `hashCode`, `operator ==`, `toJson`, `fromJson`, or `copyWith` methods were added
+- The file compiles: run `flutter analyze lib/data/models.dart`
+
+**Common AI mistakes on this task:**
+
+Adding `toJson`/`fromJson` even when told not to — AI tools are trained on code that almost always includes serialisation. Using `checking` instead of `current` for the account type — the AI defaults to American banking terms. Making `read` a required parameter instead of giving it a default value. Generating a `Notification` class name instead of `AppNotification` — `Notification` conflicts with Flutter's built-in class.
+
+  </CrossCheck>
+</DualPath>
+
+Now create the mock data. This file provides test data for the rest of the tutorial.
+
+<DualPath exercise="mock-data">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `lib/data/mock_data.dart` with:
+
+1. Import `models.dart`
+2. A `const mockUser` — User with id `'user-1'`, name `'Alex Johnson'`, email `'alex@pilotbank.dev'`
+3. A `mockAccounts` list with 3 accounts: a Current Account (balance £4,825.67), a Savings Account (£12,340.00), and a Credit Card (-£892.15)
+4. A `mockTransactions` map of `String` to `List<Transaction>` with 4 transactions for account `'acc-1'`: a salary deposit, a grocery purchase, an electric bill, and a savings transfer
+5. A `mockNotifications` list with 3 notifications — one for payment received, one for card payment, one for direct debit (marked as read)
+
+Use GBP amounts throughout. Dates should be in early 2026.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Create a Dart file lib/data/mock_data.dart that imports models.dart. Define: a const mockUser (User with id 'user-1', name 'Alex Johnson', email 'alex@pilotbank.dev'). A mockAccounts list with 3 Account objects: Current Account (id acc-1, balance 4825.67), Savings Account (id acc-2, balance 12340.00), Credit Card (id acc-3, balance -892.15). A mockTransactions map (String to List of Transaction) with 4 transactions for acc-1: salary deposit 3200.00 credit on April 1 2026, grocery 45.99 debit on April 2 2026, electric bill 120.00 debit on March 28 2026, savings transfer 500.00 credit on March 25 2026. A mockNotifications list with 3 AppNotification objects about payment received, card payment, and direct debit. Use GBP amounts. Third notification should have read: true."
+
+This is a longer prompt, but every detail is specified. The AI has no room to improvise.
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `mock_data.dart` against this checklist:
+
+- The file imports `models.dart` (relative import)
+- `mockUser` is declared with `const`
+- `mockAccounts` uses the correct `AccountType` enum values
+- The Credit Card balance is **negative** (-892.15)
+- `mockTransactions` is a `Map<String, List<Transaction>>` (not a flat list)
+- Transaction dates use `DateTime(2026, ...)` constructor
+- Transaction types use `TransactionType.credit` and `TransactionType.debit` correctly
+- The third notification has `read: true`
+- The file compiles: run `flutter analyze lib/data/mock_data.dart`
+
+**Common AI mistakes:**
+
+Making all balances positive (forgetting credit card debt is negative). Using a flat list for transactions instead of a map keyed by account ID. Using `DateTime.parse('...')` instead of the `DateTime()` constructor. Forgetting to import `models.dart`.
+
+  </CrossCheck>
+</DualPath>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter analyze</code> from the project root. You should see
+    <strong>"No issues found!"</strong> If you have errors, fix them before continuing.
+    The data models and mock data created here are used by every subsequent chapter.
+  </p>
+</div>
+
+---
+
+## Section 4: Chat vs Inline — When to Use Each
+
+Now that you have used both the chat panel and inline completions (comments as prompts), here is when to use each.
+
+### Inline completions (ghost text)
+
+Best for:
+- Single functions or methods
+- Completing code you have already started typing
+- Small additions to an existing file
+- Data models prompted by comments (as you just did)
+
+The key advantage is speed. You stay in your editor, the suggestion appears as you type, and you accept or dismiss without switching context.
+
+### Chat panel
+
+Best for:
+- Multi-file code generation
+- When you need an explanation alongside the code
+- Complex logic that requires back-and-forth refinement
+- When you want to see alternative approaches
+
+The key advantage is depth. You can describe what you want in natural language, ask follow-up questions, and have a conversation about trade-offs.
+
+### The decision rule
+
+**If you can describe what you want in a one-line comment, use inline.** If you need a paragraph, use chat.
+
+For the data models exercise, comments-as-prompts (inline) worked well because each model was self-contained and the spec was short. For the mock data, the chat panel was better because the spec was longer and involved multiple interconnected objects.
+
+---
+
+## Section 5: The Anti-Pattern — Fly-by-Night
+
+Every chapter names an anti-pattern. Chapter 1's is the **Fly-by-Night**.
+
+A Fly-by-Night prompt is one filed without a plan. It is vague, unscoped, and produces output that requires extensive rework — which defeats the purpose of using AI in the first place.
+
+**Signs you are flying by night:**
+
+- Your prompts do not mention data types
+- You do not specify constructor style or patterns
+- You accept the first suggestion without re-prompting, even when it is not quite right
+- You ask for "a model" instead of specifying exactly which fields it needs
+- You let the AI decide your app's data structure instead of designing it yourself
+- Your prompts end with a period instead of constraints — "Make a user model." versus "Make a User class with id (String), name (String), email (String), const constructor, named required parameters."
+
+**The fix:** Before you type a prompt, write down what you want on paper (or in your head). The fields. The types. The constraints. The things you do NOT want. Then translate that spec into a prompt. If you cannot describe what you want precisely, you are not ready to prompt — you are still designing.
+
+<div className="pb-callout pb-callout--blue">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>A prompt is a specification.</strong> If your prompt could apply to any app
+    in any language, it is too vague. A good prompt can only produce one correct answer.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+You can now write prompts that produce exactly the code you want. But producing code is only half the job — the other half is reading what comes back.
+
+In **Chapter 2: Instrument Scan**, you will learn to critically evaluate AI-generated code. The AI will generate Riverpod providers for state management, and your job is to catch the mistakes before they reach production. The data models you created here are the foundation — every provider depends on them.
+
+See you at the instruments.
