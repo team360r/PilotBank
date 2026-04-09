@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/instrument-scan/quiz
+title: "Quiz: Instrument Scan"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Instrument Scan
+
+Test your understanding of Chapter 2 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={2}>
+
+<QuizQuestion
+  question="Why should you treat AI-generated code like a junior developer's pull request?"
+  options={[
+    "Because AI code is always lower quality than human code",
+    "Because it may look correct and compile but have subtle issues with edge cases, state management, or lifecycle handling",
+    "Because junior developers and AI tools use the same programming patterns",
+    "Because you should always rewrite AI code from scratch"
+  ]}
+  correctIndex={1}
+  explanation="AI output often looks right, compiles, and even runs — but has subtle issues with edge cases, state management, lifecycle handling, or error propagation. These are the same failure modes as junior developer code, which is why the same review discipline applies."
+/>
+
+<QuizQuestion
+  question="A StateNotifier updates state with 'state.isLoggedIn = true'. What is wrong?"
+  options={[
+    "Nothing — this is the correct way to update state in Riverpod",
+    "The property name should be camelCase",
+    "Direct mutation does not trigger Riverpod's rebuild mechanism — the UI will not update",
+    "You should use setState() instead of direct assignment"
+  ]}
+  correctIndex={2}
+  explanation="Riverpod's StateNotifier detects changes by comparing old and new state references. Mutating a property on the existing state object does not create a new reference, so Riverpod does not know the state changed. The correct approach is state = AuthState(isLoggedIn: true) — creating a new object."
+/>
+
+<QuizQuestion
+  question="When should you use a simple Provider instead of a StateNotifierProvider?"
+  options={[
+    "When the data needs to be updated by user actions",
+    "When the data is read-only and never changes after initialisation",
+    "When working with lists instead of single objects",
+    "Always — Provider is the preferred type for all cases"
+  ]}
+  correctIndex={1}
+  explanation="A simple Provider is the right choice for data that is read-only and never changes. If the data needs to change in response to user actions, you need a StateNotifierProvider with explicit update methods. Using the wrong type leads to either unnecessary complexity or missing functionality."
+/>
+
+<QuizQuestion
+  question="What is the 'Explain Yourself' technique?"
+  options={[
+    "Writing detailed comments explaining every line of code",
+    "Asking the AI to explain its generated code, then comparing the explanation against what the code actually does",
+    "Having the AI generate unit tests that explain the code's behaviour",
+    "Writing a README file before generating any code"
+  ]}
+  correctIndex={1}
+  explanation="The 'Explain Yourself' technique asks the AI to describe what its generated code does, then you compare that explanation against your own reading of the code. If the explanation and the code disagree, the code is almost certainly wrong."
+/>
+
+<QuizQuestion
+  question="What is the 'Autopilot Complacency' anti-pattern?"
+  options={[
+    "Using autopilot features in your IDE instead of AI tools",
+    "Writing too many automated tests for AI-generated code",
+    "Accepting AI suggestions without reading them because the code compiles and the app runs",
+    "Using AI tools only for simple tasks instead of complex ones"
+  ]}
+  correctIndex={2}
+  explanation="Autopilot Complacency is when you stop reading AI suggestions because they seem to work. The code compiles, the app runs, so you stop checking. This is dangerous because subtle bugs in state management, error handling, and edge cases only appear later."
+/>
+
+<QuizQuestion
+  question="Why is it important to check that a list-based StateNotifier creates new list objects instead of mutating in place?"
+  options={[
+    "Creating new lists uses less memory than modifying existing ones",
+    "Dart does not support in-place list modification",
+    "Riverpod compares by reference — if the list reference does not change, the UI does not rebuild",
+    "The Dart analyzer will show a warning for in-place mutation"
+  ]}
+  correctIndex={2}
+  explanation="Riverpod's StateNotifier compares old and new state by reference. If you mutate a list in place (e.g., state[0].read = true), the list reference stays the same, so Riverpod thinks nothing changed and does not rebuild the UI. You must create a new list with new objects."
+/>
+
+</Quiz>

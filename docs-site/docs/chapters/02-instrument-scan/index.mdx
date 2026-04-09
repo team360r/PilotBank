@@ -2,19 +2,303 @@
 sidebar_position: 1
 slug: /chapters/instrument-scan
 title: "Chapter 2: Instrument Scan"
-description: "Read and evaluate AI suggestions critically."
+description: "Learn to critically evaluate AI-generated Flutter code."
 ---
+
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Chapter 2: Instrument Scan
 
-> *"Trust, but verify."* — Ronald Reagan
+> *"Trust your instruments, but verify them against each other. A single faulty gauge has crashed planes."*
 
-**Estimated time:** ~30 min | **AI skill focus:** Evaluating AI output | **Branch:** `chapter-2-instrument-scan`
+**Estimated time:** ~30 min | **AI skill focus:** Critical evaluation of AI output | **Branch:** `chapter-2-instrument-scan`
 
-**Anti-pattern:** Autopilot Complacency — AI output is accepted without reading or evaluating it.
+**Anti-pattern:** Autopilot Complacency — accepting AI output without reading it.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: The Suggestion is a Draft
+
+In Chapter 1 you learned to write prompts that produce focused output. Now comes the harder skill: reading what comes back.
+
+AI output is a first draft, not finished code. Treat every suggestion the way you would treat a pull request from a junior developer — it might be correct, it might be almost correct, or it might be subtly wrong in ways that only show up at runtime.
+
+The junior developer analogy is not dismissive. Junior developers often produce code that looks right, passes a quick glance, and even compiles — but has issues with edge cases, state management, lifecycle handling, or error propagation. AI output has exactly the same failure modes.
+
+Your job as Pilot in Command is not to generate code. It is to **review** code. The AI generates. You evaluate. Every time.
+
+---
+
+## Section 2: Reading AI Code Line by Line
+
+Let's walk through what it looks like to critically read AI-generated Flutter code. We will use Riverpod state management as our domain because it has enough moving parts to expose common AI mistakes.
+
+When you receive an AI-generated Riverpod provider, check these things in order:
+
+<div className="pb-step">
+  <div className="pb-step__badge">1</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Check the provider type</div>
+
+Riverpod has several provider types, and the AI needs to pick the right one:
+
+**Provider** — for read-only, synchronous values that never change on their own. Good for exposing static data or computed values.
+
+**StateNotifierProvider** — for mutable state with explicit update methods. Good for state that changes in response to user actions (login/logout, marking notifications read).
+
+**FutureProvider** — for asynchronous data that loads once. Good for API calls.
+
+If the AI used `StateNotifierProvider` for data that never changes, or `Provider` for data that needs mutations, the provider type is wrong.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">2</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Check state immutability</div>
+
+In Riverpod, state objects should be immutable. The `StateNotifier` should never modify properties of the current state directly — it should create a **new** state object and assign it to `state`.
+
+**Wrong:** `state.isLoggedIn = true;`
+
+**Right:** `state = AuthState(isLoggedIn: true);`
+
+If the AI generates code that mutates state in place, it will not trigger Riverpod's rebuild mechanism. The UI will not update. This is one of the most common AI mistakes in Flutter state management.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">3</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Check for copyWith</div>
+
+State classes with multiple fields should have a `copyWith` method. Without it, every state update requires manually copying all fields — which means if you add a field later, you have to update every place that creates a new state.
+
+Check: does the state class have `copyWith`? If it has more than two fields and no `copyWith`, flag it.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">4</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Check error handling</div>
+
+State that can fail (authentication, API calls) needs an error field. Check that the state class has an `error` property, that methods set the error on failure, and that there is a way to clear the error.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">5</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Ask the AI to explain</div>
+
+After generating code, ask your AI: "Explain this provider to me step by step." Compare the explanation against what the code actually does. If the explanation and the code disagree, the code is wrong.
+
+  </div>
+</div>
+
+---
+
+## Section 3: Common AI Mistakes in Flutter State Management
+
+Here are the patterns AI tools get wrong most often. Knowing these in advance makes your code review faster.
+
+**Wrong provider type for the use case.** The AI uses `StateNotifierProvider` for data that never changes, or `Provider` for data that needs to be updated. Ask yourself: does this state ever change after initialisation? If yes, it needs a notifier. If no, a simple `Provider` is fine.
+
+**Mutable state in immutable providers.** The AI creates a `Provider` that returns a mutable list. Consumers can accidentally modify the list, causing unpredictable behaviour. Lists returned from providers should be unmodifiable or the provider should use a `StateNotifier`.
+
+**Missing copyWith on state classes.** The AI generates a state class with five fields but no `copyWith` method. Every state update requires writing out all five fields manually. This is error-prone and gets worse as the class grows.
+
+**StateNotifier modifying state directly.** The AI writes `state.items.add(newItem)` instead of `state = [...state.items, newItem]`. Direct mutation does not trigger rebuilds.
+
+**Forgetting to handle loading and error states.** The AI generates an async provider that sets the happy-path data but has no loading indicator and no error handling. If the async operation fails, the app shows nothing or crashes.
+
+---
+
+## Section 4: Build the Providers
+
+Time to build state management for PilotBank. You will create three providers, each demonstrating a different complexity level.
+
+### Authentication Provider
+
+<DualPath exercise="auth-provider">
+  <Manual>
+
+**By hand (~15 min):**
+
+Create `lib/providers/auth_provider.dart` with:
+
+1. An `AuthState` class with `isLoggedIn` (bool, default false) and `error` (String?, default null). Add a `copyWith` method. Use const constructor.
+2. An `AuthNotifier` extending `StateNotifier<AuthState>` with methods: `login(email, password)` that checks against hardcoded credentials (`alex@pilotbank.dev` / `password`), `logout()` that resets state, and `clearError()` that clears the error field.
+3. A `StateNotifierProvider` named `authProvider` that creates the `AuthNotifier`.
+
+The tricky parts: getting the `copyWith` method right (error should be set to `null` explicitly, not preserved from the old state), making `login` set an error message on failure, and ensuring `logout` returns to the initial state.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Create a Riverpod StateNotifier for authentication in Dart. The state class AuthState has isLoggedIn (bool, default false) and error (String?, default null). Include a copyWith method. The AuthNotifier extends StateNotifier with methods: login(email, password) that checks against hardcoded credentials 'alex@pilotbank.dev' and 'password' — sets isLoggedIn true on success, sets error message on failure. logout() resets to initial state. clearError() clears the error. Create a StateNotifierProvider named authProvider. Import flutter_riverpod."
+
+Review every line before accepting. Move to the Cross-Check tab.
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `auth_provider.dart` against these checks:
+
+Is `AuthState` immutable? All fields should be `final`. Does `AuthState` have a `const` constructor? Does `copyWith` handle the `error` field correctly? When you call `copyWith(error: null)`, the error should become `null` — not preserve the old error. This is a common AI mistake with nullable fields in `copyWith`.
+
+Does `login` create a **new** `AuthState` (not mutate the existing one)? Does `login` set an error message on invalid credentials? Does `logout` reset to the default state (not just set `isLoggedIn` to false)? Is the provider typed correctly as `StateNotifierProvider<AuthNotifier, AuthState>`?
+
+**The most common AI mistake here:** generating a `copyWith` where `error: error ?? this.error` preserves the old error even when you explicitly pass `null`. The correct pattern for nullable fields is to use a sentinel or accept that passing `null` means "clear the field."
+
+  </CrossCheck>
+</DualPath>
+
+### Accounts Provider
+
+<DualPath exercise="accounts-provider">
+  <Manual>
+
+**By hand (~5 min):**
+
+Create `lib/providers/accounts_provider.dart` with:
+
+1. A simple `Provider` that returns the `mockAccounts` list
+2. A `Provider.family` that takes an account ID and returns the transactions for that account from `mockTransactions`
+
+This is straightforward — a good example of where a simple `Provider` is the right choice because mock data does not change.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~2 min):**
+
+> "Create a Dart file lib/providers/accounts_provider.dart. Import flutter_riverpod, ../data/mock_data.dart, and ../data/models.dart. Define: a Provider named accountsProvider that returns mockAccounts (List of Account). A Provider.family named transactionsProvider that takes a String accountId and returns the transactions from mockTransactions for that ID, or an empty list if the ID is not found."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Is `accountsProvider` a simple `Provider` (not `StateNotifierProvider`)? This data does not change, so a simple provider is correct. Is `transactionsProvider` using `Provider.family`? The `.family` modifier lets you parameterise the provider by account ID.
+
+Does `transactionsProvider` handle the case where the account ID is not in the map? It should return an empty list, not throw. Are the imports correct? You need `flutter_riverpod`, `mock_data.dart`, and `models.dart`.
+
+This is an example of a task the AI handles well. Simple providers with clear data flow are low risk. If the AI got this right on the first try, that is expected.
+
+  </CrossCheck>
+</DualPath>
+
+### Notifications Provider
+
+<DualPath exercise="notifications-provider">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `lib/providers/notifications_provider.dart` with:
+
+1. A `NotificationsNotifier` extending `StateNotifier<List<AppNotification>>` initialised with `mockNotifications`
+2. A `markAllRead()` method that replaces the entire list with copies where `read` is `true`
+3. A `markRead(String id)` method that replaces one notification with a copy where `read` is `true`
+4. A `StateNotifierProvider` named `notificationsProvider`
+5. A derived `Provider` named `unreadCountProvider` that watches `notificationsProvider` and counts unread notifications
+
+The difficult part is `markAllRead` and `markRead`. Because `AppNotification` has no `copyWith`, you must construct new instances manually. And because the state is a list, you must rebuild the entire list — not modify items in place.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Create a Dart file lib/providers/notifications_provider.dart. Import flutter_riverpod, ../data/mock_data.dart, and ../data/models.dart. Create a NotificationsNotifier extending StateNotifier of List of AppNotification, initialised with mockNotifications. Methods: markAllRead() rebuilds the list with all notifications set to read true. markRead(String id) rebuilds the list with the matching notification set to read true. Create a StateNotifierProvider named notificationsProvider. Create a derived Provider named unreadCountProvider that watches notificationsProvider and returns the count of notifications where read is false."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `notifications_provider.dart` carefully — this is where AI mistakes are most likely.
+
+Does `markAllRead` create a **new list** with **new AppNotification objects**? It must not modify the existing list items in place. Does `markRead` also create a new list? Check that it uses `state = [for (final n in state) ...]` or equivalent — not `state[index].read = true`.
+
+Does `unreadCountProvider` use `ref.watch` (not `ref.read`)? It needs to rebuild when notifications change. Does `unreadCountProvider` filter for `!n.read` (not `n.read`)? A common off-by-one in the logic.
+
+**The critical check:** If the AI wrote `state.map(...)` and assigned the result back to `state`, verify that it called `.toList()` on the result. Riverpod's `StateNotifier` compares by reference — if the list type changes from `List` to `MappedListIterable`, Riverpod may not detect the change.
+
+  </CrossCheck>
+</DualPath>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter analyze</code> from the project root. You should see
+    <strong>"No issues found!"</strong> All three providers should compile cleanly.
+    If the analyzer reports errors, fix them before continuing.
+  </p>
+</div>
+
+---
+
+## Section 5: The "Explain Yourself" Technique
+
+Here is a debugging technique that works surprisingly well with AI tools: after generating code, ask the AI to explain it back to you.
+
+> "Explain the AuthNotifier class to me step by step. What does each method do, and what is the state after each operation?"
+
+Then compare the AI's explanation against what the code actually does. Read the code yourself, form your own understanding, and check it against the AI's description.
+
+**If they agree** — good, you have two independent confirmations of the code's behaviour.
+
+**If they disagree** — the code is almost certainly wrong. The AI generated code it cannot accurately describe, which means it was pattern-matching syntax rather than reasoning about behaviour.
+
+This technique is especially powerful for state management code, where the difference between correct and incorrect is often a single line (mutating in place vs creating a new object).
+
+<div className="pb-callout pb-callout--blue">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>If you cannot explain what a provider does, you should not ship it.</strong> Ask
+    the AI to explain, then verify the explanation yourself. Two independent checks
+    are better than one.
+  </p>
+</div>
+
+---
+
+## Section 6: The Anti-Pattern — Autopilot Complacency
+
+Chapter 2's anti-pattern is **Autopilot Complacency**.
+
+Autopilot Complacency is what happens when you stop reading AI suggestions. The tool is generating code, the code compiles, the app runs — so you stop checking. You accept ten suggestions in a row without reading any of them. You scroll past generated code because it "looks about right."
+
+In aviation, autopilot complacency has contributed to real accidents. The autopilot was flying the plane correctly for hours, so the pilots stopped monitoring the instruments. When something went wrong, they were too slow to notice.
+
+**Signs of Autopilot Complacency:**
+
+You have not read the last five suggestions you accepted. You cannot explain what the most recent provider does without looking at the code. You hit Tab to accept inline suggestions faster than you can read them. You feel impatient when the Cross-Check tab asks you to verify things. You trust that "the AI probably got it right" without checking.
+
+**The fix:** Slow down. Read every line of generated code before accepting it. If you are generating faster than you can review, you are generating too fast. The time you save by skipping review is always less than the time you spend debugging the mistakes you missed.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Cross-Check</div>
+  <p>
+    Be honest: did you read every line of the providers you just created? Or did you
+    copy the AI's output and move on? If you skipped the review, go back now. The
+    providers created in this chapter are used by every screen in the app.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+You can now write precise prompts (Chapter 1) and critically evaluate what comes back (Chapter 2). The data models and providers are in place — PilotBank has a data layer.
+
+In **Chapter 3: Takeoff**, you will use AI for what it does best: boilerplate. Routing, navigation shells, placeholder screens, and theme wiring — the repetitive structural code that takes time but not creativity. This is where AI saves the most time with the least risk, and where you will learn when NOT to use it.
+
+Engines are running. Time for takeoff.
