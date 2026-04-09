@@ -5,16 +5,261 @@ title: "Chapter 3: Takeoff"
 description: "Use AI for boilerplate: routing, navigation, theme."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 3: Takeoff
 
-> *"The engine is the heart of an aeroplane, but the pilot is its soul."* — Walter Raleigh
+> *"Takeoff is procedural. Follow the checklist. This is where AI earns its keep."*
 
 **Estimated time:** ~30 min | **AI skill focus:** Boilerplate generation | **Branch:** `chapter-3-takeoff`
 
-**Anti-pattern:** Backseat Driver — Micro-managing the AI instead of letting it handle boilerplate.
+**Anti-pattern:** Backseat Driver — over-delegating trivial code, using AI for things faster to type yourself.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: Boilerplate is AI's Sweet Spot
+
+Not all code is created equal. Some code requires deep thought — business logic, state management, algorithm design. Other code is structural — routing definitions, navigation shells, placeholder screens, wiring files together.
+
+The structural code is boilerplate. It follows well-known patterns, has little room for creativity, and takes time without requiring much thinking. This is where AI assistance provides the best return on investment.
+
+**Why boilerplate is low risk:**
+
+Routing tables have a known structure. Navigation shells follow documented patterns. Placeholder screens are identical except for the title text. Theme wiring is mechanical. If the AI makes a mistake in boilerplate, you catch it immediately because the app does not compile or the navigation does not work. Compare this with a subtle state management bug that only appears when you log out and back in.
+
+**The strategy for this chapter:** Let AI generate the structure, then manually adjust the details. We call this the "Scaffold and Refine" pattern.
+
+---
+
+## Section 2: The "Scaffold and Refine" Pattern
+
+Instead of writing a perfect prompt that generates perfect code, use a two-step approach:
+
+**Step 1 — Scaffold.** Give the AI a prompt that describes the overall structure. Accept the output, knowing it will be roughly 80% correct.
+
+**Step 2 — Refine.** Read through the generated code and fix the details yourself. Adjust route paths, fix import paths, change icon choices, tweak naming conventions to match your project.
+
+This pattern works because:
+
+You do not waste time crafting the perfect prompt. The 80% the AI gets right would have taken you 15 minutes to type. The 20% you fix yourself takes 2 minutes and ensures the code matches your exact requirements. You understand every line because you reviewed it all.
+
+The Scaffold and Refine pattern is the opposite of the Fly-by-Night anti-pattern from Chapter 1. You are not accepting blindly — you are using AI for the tedious parts and applying your judgement for the details.
+
+---
+
+## Section 3: Build the Router
+
+PilotBank needs a `GoRouter` configuration with authentication-aware redirects. This is a textbook AI task — the structure is well-defined, the patterns are documented, and the details are specific to your app.
+
+<DualPath exercise="router">
+  <Manual>
+
+**By hand (~20 min):**
+
+Create `lib/routing/router.dart` with:
+
+1. A `routerProvider` using Riverpod `Provider` that watches `authProvider`
+2. A `GoRouter` with `initialLocation: '/login'`
+3. A redirect function that sends unauthenticated users to `/login` and redirects authenticated users away from `/login` to `/dashboard`
+4. Routes: `/login` (standalone), then a `ShellRoute` wrapping `/dashboard`, `/transactions/:accountId`, `/transfer`, `/notifications`, `/settings`
+5. Each route should use its corresponding screen widget
+
+You need to import all screen files, the auth provider, and the GoRouter and Riverpod packages. Getting the redirect logic right is the tricky part — you need to handle both directions (not logged in trying to access a protected route, and logged in trying to access the login page).
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Create a GoRouter configuration in Dart file lib/routing/router.dart. Use a Riverpod Provider that watches authProvider (from ../providers/auth_provider.dart). GoRouter with initialLocation '/login'. Redirect: if not logged in and not on /login, redirect to /login. If logged in and on /login, redirect to /dashboard. Otherwise return null. Routes: GoRoute for /login using LoginScreen. ShellRoute using ShellScreen(child: child) wrapping: /dashboard with DashboardScreen, /transactions/:accountId with TransactionsScreen(accountId: state.pathParameters['accountId']!), /transfer with TransferScreen, /notifications with NotificationsScreen, /settings with SettingsScreen. Import all screens from ../screens/ and auth_provider from ../providers/."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `router.dart`:
+
+Does the `routerProvider` use `ref.watch(authProvider)` to react to auth changes? Does the redirect handle **both** directions — unauthenticated users are sent to login, and authenticated users are redirected away from login?
+
+Does the redirect return `null` when no redirect is needed? (Returning `null` means "stay on the current route.") Is `/login` outside the `ShellRoute`? The login screen should not have the bottom navigation bar.
+
+Is the `ShellRoute` builder correct? It should be `(context, state, child) => ShellScreen(child: child)`. Does the transactions route correctly extract `accountId` from `state.pathParameters`?
+
+  </CrossCheck>
+</DualPath>
+
+### Build the Shell Screen
+
+<DualPath exercise="shell-screen">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `lib/screens/shell_screen.dart` with a `ConsumerWidget` that displays a `Scaffold` with the router's `child` as the body and a `BottomNavigationBar` with four items: Accounts (account_balance icon), Transfer (send icon), Alerts (notifications icon with unread badge), and Settings (settings icon).
+
+The `currentIndex` should be derived from the current route location. Tapping each item should navigate to the corresponding route using `context.go(...)`.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Create a Flutter ConsumerWidget in lib/screens/shell_screen.dart. It takes a required Widget child parameter. Build a Scaffold with child as body and a BottomNavigationBar with 4 items: Accounts (Icons.account_balance), Transfer (Icons.send), Alerts (Icons.notifications with Badge showing unread count from unreadCountProvider), Settings (Icons.settings). Determine currentIndex from GoRouterState.of(context).matchedLocation — dashboard and transactions map to 0, transfer to 1, notifications to 2, settings to 3. On tap, use context.go() to navigate to /dashboard, /transfer, /notifications, or /settings. Use BottomNavigationBarType.fixed. Import go_router, flutter_riverpod, and notifications_provider."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `shell_screen.dart`:
+
+Does it extend `ConsumerWidget` (not `StatelessWidget`)? It needs `ref` to read the unread count. Does the `currentIndex` calculation handle the `/transactions` path? Transactions are a sub-route of the Accounts tab, so both `/dashboard` and `/transactions` should map to index 0.
+
+Does the notification badge use `ref.watch(unreadCountProvider)` to stay reactive? Is `isLabelVisible` set so the badge only shows when `unread > 0`?
+
+Does `onTap` use `context.go()` (not `context.push()`)? With a `ShellRoute`, you want to replace the current screen, not push on top of it.
+
+  </CrossCheck>
+</DualPath>
+
+### Placeholder Screens
+
+Now create six placeholder screens. These are minimal — just a `Scaffold` with a centered title. Later chapters will fill them in with real UI.
+
+This is the most mechanical task in the chapter. Each screen is identical except for the class name and title text. This is a perfect candidate for AI generation.
+
+> "Create six minimal Flutter screen files in lib/screens/. Each should be a StatelessWidget with a Scaffold, an AppBar with the screen title, and a Center widget with a Text saying 'Screen name coming soon'. The files and class names: login_screen.dart (LoginScreen, title 'Sign In'), dashboard_screen.dart (DashboardScreen, title 'Dashboard'), transactions_screen.dart (TransactionsScreen with a required String accountId parameter, title 'Transactions'), transfer_screen.dart (TransferScreen, title 'Transfer'), notifications_screen.dart (NotificationsScreen, title 'Notifications'), settings_screen.dart (SettingsScreen, title 'Settings'). Use const constructors."
+
+Verify that each file compiles and that `TransactionsScreen` accepts the `accountId` parameter.
+
+---
+
+## Section 4: When NOT to Use AI
+
+Now that you have seen AI handle boilerplate efficiently, let's talk about when it is faster to type code yourself. This is the **Backseat Driver** anti-pattern — over-delegating trivial code to the AI.
+
+### Things faster to type yourself
+
+**One-line widgets.** Typing `const SizedBox(height: 16)` takes two seconds. Waiting for an AI suggestion, reading it, and accepting it takes longer. Your fingers are faster than the feedback loop for trivial code.
+
+**Simple conditionals.** A basic `if/else` is faster to type than to prompt for. The AI adds no value on code you can write without thinking.
+
+**Import statements.** Your IDE's auto-import is faster and more accurate than asking the AI. Press the quick-fix shortcut and let the IDE handle it.
+
+**Variable declarations.** `final name = 'Alex';` does not need AI assistance.
+
+### The decision rule
+
+**AI saves time on 20+ line structures.** For 1-3 lines, your fingers are faster than the feedback loop. For 4-20 lines, it depends on complexity. For 20+ lines of structured, repetitive code, AI is almost always faster.
+
+The Backseat Driver wastes time by delegating everything — including the trivial parts — to the AI. They wait for suggestions on `const SizedBox(height: 16)` instead of just typing it. They prompt for import statements instead of using auto-import. They ask the AI to write `return null;` instead of typing five characters.
+
+<div className="pb-callout pb-callout--blue">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>If the code is shorter than the prompt you would write to generate it,
+    type it yourself.</strong> AI assistance has a minimum useful complexity threshold.
+    Below that threshold, your keyboard is faster.
+  </p>
+</div>
+
+---
+
+## Section 5: Wiring It Together
+
+The last step is connecting the router to the app. This requires updating two existing files.
+
+### Update main.dart
+
+Open `lib/main.dart`. You need to wrap the app in a `ProviderScope` so that Riverpod providers are available throughout the widget tree.
+
+The change is small: import `flutter_riverpod`, and wrap `PilotBankApp()` with `ProviderScope`. This is a one-line structural change — a good example of "Scaffold and Refine" where the scaffold is tiny.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    const ProviderScope(
+      child: PilotBankApp(),
+    ),
+  );
+}
+```
+
+### Update app.dart
+
+Open `lib/app.dart`. The app currently uses `MaterialApp` with a `home` parameter. You need to change it to `MaterialApp.router` with a `routerConfig` that reads the GoRouter from the provider.
+
+This means `PilotBankApp` needs to become a `ConsumerWidget` so it can access `ref.watch(routerProvider)`. You also need to remove the `_WelcomeScreen` class since the router now controls which screen appears.
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'routing/router.dart';
+import 'theme/app_theme.dart';
+
+class PilotBankApp extends ConsumerWidget {
+  const PilotBankApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+
+    return MaterialApp.router(
+      title: 'PilotBank',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.system,
+      routerConfig: router,
+    );
+  }
+}
+```
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter analyze</code> from the project root. You should see
+    <strong>"No issues found!"</strong> If you run the app, you should see the
+    login screen. The bottom navigation bar should not be visible on the login screen.
+  </p>
+</div>
+
+---
+
+## Section 6: The Anti-Pattern — Backseat Driver
+
+Chapter 3's anti-pattern is the **Backseat Driver**.
+
+A Backseat Driver delegates everything to the AI, including tasks that are faster to do by hand. They prompt for one-line widgets, ask the AI to write import statements, and wait for suggestions on code they could type in seconds.
+
+The result is slower development, not faster. The overhead of the AI feedback loop — writing a prompt, waiting for a response, reading the suggestion, deciding whether to accept — only pays off when the generated code saves more time than the loop costs.
+
+**Signs you are a Backseat Driver:**
+
+You ask the AI to generate `const SizedBox(height: 16)`. You wait for an inline suggestion instead of typing a three-line widget. You prompt for every import statement instead of using your IDE's auto-import. You use the chat panel to ask "how do I return null from a function."
+
+**The fix:** Develop a sense for the complexity threshold. Below 5 lines of straightforward code, type it. Above 20 lines of structural code, prompt for it. In between, use your judgement. The goal is speed, not purity — use whichever method is faster for each piece of code.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Cross-Check</div>
+  <p>
+    Look at the code you created in this chapter. Which parts did the AI generate faster
+    than you could type? Which parts would have been faster to type yourself? Getting
+    this calibration right is a skill that improves with practice.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has a data layer (models and mock data from Chapter 1), a state management layer (providers from Chapter 2), and an app skeleton (routing, navigation, and placeholder screens from Chapter 3). The app compiles, runs, and shows a login screen.
+
+In **Chapter 4: Cruise**, you will build the first real screens — the dashboard and transaction list. This is where prompting, evaluation, and boilerplate generation come together as you build actual user-facing features with AI assistance.
+
+We have cleared the runway. Altitude is climbing. Time to cruise.

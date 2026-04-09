@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/takeoff/quiz
+title: "Quiz: Takeoff"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Takeoff
+
+Test your understanding of Chapter 3 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={3}>
+
+<QuizQuestion
+  question="Why is routing and navigation boilerplate considered a 'sweet spot' for AI assistance?"
+  options={[
+    "Because routing is the most complex part of a Flutter app",
+    "Because it follows well-known patterns, has little room for creativity, and mistakes are caught immediately by the compiler or at runtime",
+    "Because AI tools have special training data for Flutter routing",
+    "Because boilerplate code does not need to be reviewed"
+  ]}
+  correctIndex={1}
+  explanation="Routing boilerplate follows documented patterns and is highly structured. If the AI makes a mistake, you catch it immediately because the app won't compile or navigation won't work. Compare this with subtle state management bugs that only appear in edge cases."
+/>
+
+<QuizQuestion
+  question="What is the 'Scaffold and Refine' pattern?"
+  options={[
+    "Using the Scaffold widget and then adding child widgets one at a time",
+    "Writing a perfect prompt that generates perfect code on the first try",
+    "Letting AI generate the overall structure (roughly 80% correct), then manually adjusting the details",
+    "Building the UI scaffold first and refining the business logic later"
+  ]}
+  correctIndex={2}
+  explanation="Scaffold and Refine means using AI to generate the overall structure quickly, accepting that it will be roughly 80% correct, then reading through the output and fixing the remaining 20% yourself. This is faster than crafting a perfect prompt or writing everything by hand."
+/>
+
+<QuizQuestion
+  question="Why should the login route be OUTSIDE the ShellRoute in GoRouter?"
+  options={[
+    "Because ShellRoute does not support child routes",
+    "Because the login screen should not display the bottom navigation bar",
+    "Because GoRouter requires the first route to be outside any ShellRoute",
+    "There is no technical reason — it is just a convention"
+  ]}
+  correctIndex={1}
+  explanation="ShellRoute wraps its child routes with a shared UI element — in this case, a Scaffold with a BottomNavigationBar. The login screen should not have the bottom navigation bar, so it must be defined outside the ShellRoute."
+/>
+
+<QuizQuestion
+  question="When is it faster to type code yourself instead of using AI?"
+  options={[
+    "Never — AI is always faster than typing",
+    "Only for comments and documentation",
+    "For short, trivial code (1-3 lines) where the AI feedback loop takes longer than typing",
+    "Only when the AI tool is offline"
+  ]}
+  correctIndex={2}
+  explanation="The AI feedback loop — writing a prompt, waiting for a response, reading the suggestion, deciding to accept — has overhead. For trivial code like 'const SizedBox(height: 16)' or a simple if/else, your keyboard is faster. AI saves time on 20+ line structural code."
+/>
+
+<QuizQuestion
+  question="What is the 'Backseat Driver' anti-pattern?"
+  options={[
+    "Telling the AI exactly what to do with overly detailed prompts",
+    "Delegating everything to the AI, including tasks that are faster to do by hand",
+    "Using multiple AI tools at the same time",
+    "Reviewing AI code too thoroughly before accepting it"
+  ]}
+  correctIndex={1}
+  explanation="The Backseat Driver delegates everything — including trivial one-line widgets and import statements — to the AI. The overhead of the AI feedback loop only pays off when the generated code saves more time than the loop costs. Below 5 lines of straightforward code, typing is usually faster."
+/>
+
+<QuizQuestion
+  question="Why does PilotBankApp need to become a ConsumerWidget when adding GoRouter?"
+  options={[
+    "Because MaterialApp.router requires ConsumerWidget as a parent",
+    "Because it needs access to ref.watch(routerProvider) to get the GoRouter instance from Riverpod",
+    "Because ConsumerWidget is required for all widgets that use navigation",
+    "Because StatelessWidget cannot use MaterialApp.router"
+  ]}
+  correctIndex={1}
+  explanation="The GoRouter instance is provided through a Riverpod Provider (routerProvider). To access it, the widget needs ref.watch(), which is only available in ConsumerWidget (or ConsumerStatefulWidget). A plain StatelessWidget cannot access Riverpod providers."
+/>
+
+</Quiz>
