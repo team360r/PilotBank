@@ -5,54 +5,42 @@ import Layout from '@theme/Layout';
 import styles from './index.module.css';
 
 const chapters = [
-  { num: 0, title: 'Threat Briefing', branch: 'chapter-0-threat-briefing',
-    desc: 'Understand the OWASP Mobile Top 10, tour the vulnerable app, and map out what needs fixing.', time: '~15 min' },
-  { num: 1, title: 'Locking the Front Door', branch: 'chapter-1-front-door',
-    desc: 'Secure authentication with proper validation, session tokens, and rate limiting.', time: '~25 min' },
-  { num: 2, title: 'The Vault Door', branch: 'chapter-2-vault-door',
-    desc: 'Move secrets from SharedPreferences to flutter_secure_storage backed by Keychain and Keystore.', time: '~25 min' },
-  { num: 3, title: 'Encrypted Channels', branch: 'chapter-3-encrypted-channels',
-    desc: 'Enforce HTTPS, implement certificate pinning, and prevent man-in-the-middle attacks.', time: '~30 min' },
-  { num: 4, title: 'Guarding the Payload', branch: 'chapter-4-payload',
-    desc: 'Encrypt sensitive data at rest with AES and proper key derivation.', time: '~25 min' },
-  { num: 5, title: 'Need to Know', branch: 'chapter-5-access-control',
-    desc: 'Add role-based route guards, validate deep links, and enforce authorization.', time: '~25 min' },
-  { num: 6, title: 'Hardened Inputs', branch: 'chapter-6-hardened-inputs',
-    desc: 'Prevent SQL injection, XSS in WebViews, and sanitize all user input.', time: '~30 min' },
-  { num: 7, title: 'Behind Closed Doors', branch: 'chapter-7-obfuscation',
-    desc: 'Obfuscate Dart code, configure ProGuard, and detect tampered builds.', time: '~25 min' },
-  { num: 8, title: 'The Watchtower', branch: 'chapter-8-watchtower',
-    desc: 'Build secure logging that never leaks PII, plus audit trails and crash reporting.', time: '~25 min' },
-  { num: 9, title: 'Biometric Checkpoint', branch: 'chapter-9-biometrics',
-    desc: 'Add fingerprint/face auth, screenshot prevention, and app lifecycle protection.', time: '~30 min' },
-  { num: 10, title: 'Penetration Test', branch: 'chapter-10-pen-test',
-    desc: 'Set up static analysis, dependency auditing, and security checks in CI.', time: '~30 min' },
-  { num: 11, title: 'Deployment Lockdown', branch: 'chapter-11-deployment',
-    desc: 'Secure signing, runtime integrity checks, environment config, and secrets management.', time: '~30 min' },
+  { num: 0, title: 'Pre-Flight Checklist', branch: 'chapter-0-preflight', desc: 'Install and configure your AI coding tools', time: '~20 min', antiPattern: 'Ghost Copilot' },
+  { num: 1, title: 'Filing Your Flight Plan', branch: 'chapter-1-flight-plan', desc: 'Learn effective prompting for Flutter code generation', time: '~25 min', antiPattern: 'Fly-by-Night' },
+  { num: 2, title: 'Instrument Scan', branch: 'chapter-2-instrument-scan', desc: 'Read and evaluate AI suggestions critically', time: '~30 min', antiPattern: 'Autopilot Complacency' },
+  { num: 3, title: 'Takeoff', branch: 'chapter-3-takeoff', desc: 'Use AI for boilerplate: routing, navigation, theme', time: '~30 min', antiPattern: 'Backseat Driver' },
+  { num: 4, title: 'Cruise Altitude', branch: 'chapter-4-cruise', desc: 'Build UI from specifications with AI assistance', time: '~35 min', antiPattern: 'Armchair Architect' },
+  { num: 5, title: 'Turbulence', branch: 'chapter-5-turbulence', desc: 'Debug when AI gets it confidently wrong', time: '~30 min', antiPattern: 'False Horizon' },
+  { num: 6, title: 'Holding Pattern', branch: 'chapter-6-holding-pattern', desc: 'Write tests with AI — and catch what it misses', time: '~30 min', antiPattern: 'Rubber Stamp' },
+  { num: 7, title: 'Go-Around', branch: 'chapter-7-go-around', desc: 'Refactor code with targeted AI assistance', time: '~25 min', antiPattern: 'Lost in the Clouds' },
+  { num: 8, title: 'Radio Calls', branch: 'chapter-8-radio-calls', desc: 'Generate documentation, commit messages, and PR descriptions', time: '~20 min', antiPattern: 'Radio Silence' },
+  { num: 9, title: 'Mayday Protocol', branch: 'chapter-9-mayday', desc: 'Understand security and IP risks of AI tools', time: '~25 min', antiPattern: 'Open Cockpit' },
+  { num: 10, title: 'Crew Resource Management', branch: 'chapter-10-crew-resource', desc: 'Integrate AI tools into team workflows', time: '~25 min', antiPattern: 'Solo Pilot' },
+  { num: 11, title: 'Landing', branch: 'chapter-11-landing', desc: 'Ship with CI, retrospective, and personal workflow', time: '~20 min', antiPattern: 'Crash Landing' },
 ];
 
 const features = [
-  { icon: '{}', title: 'Fix Real Vulnerabilities',
-    desc: 'Start with a deliberately insecure app and harden it chapter by chapter against the OWASP Mobile Top 10.' },
+  { icon: '⇄', title: 'The Dual-Path Method',
+    desc: 'Every task is tried by hand and with AI. Compare, cross-check, learn when to delegate.' },
   { icon: '12', title: '12 Progressive Chapters',
-    desc: 'From threat assessment in Chapter 0 to deployment lockdown in Chapter 11.' },
-  { icon: '<>', title: 'Before & After',
-    desc: 'Toggle between vulnerable and secure code. See exactly what each fix changes and why it matters.' },
+    desc: 'From your first AI suggestion to a team adoption strategy. ~5 hours of hands-on learning.' },
+  { icon: '🔧', title: 'Tool-Agnostic Principles',
+    desc: 'Works with Copilot, Claude Code, Cursor, or any AI assistant. The skills transfer.' },
 ];
 
 function HeroSection(): ReactNode {
   return (
     <header className={styles.hero}>
       <div className={styles.heroInner}>
-        <p className={styles.heroPre}>Flutter Security Tutorial</p>
-        <h1 className={styles.heroTitle}>SecureBank</h1>
+        <p className={styles.heroPre}>Flutter AI-Assisted Development Tutorial</p>
+        <h1 className={styles.heroTitle}>PilotBank</h1>
         <p className={styles.heroTagline}>
-          Harden a Flutter banking app against real-world attacks.<br />
-          From OWASP to deployment. Every vulnerability explained and fixed.
+          You're the pilot. AI is your copilot.<br />
+          Learn when to hand over the controls — and when to take them back.
         </p>
         <div className={styles.heroButtons}>
-          <Link className={styles.btnPrimary} to="/chapters/threat-briefing">Start Chapter 0</Link>
-          <Link className={styles.btnSecondary} to="/intro">Read the Introduction</Link>
+          <Link className={styles.btnPrimary} to="/chapters/preflight">Start Chapter 0</Link>
+          <Link className={styles.btnSecondary} to="/intro">Read Introduction</Link>
         </div>
       </div>
     </header>
@@ -82,7 +70,7 @@ function ChapterRoadmap(): ReactNode {
     <section className={styles.roadmap}>
       <div className={styles.container}>
         <h2 className={styles.sectionTitle}>Chapter Roadmap</h2>
-        <p className={styles.sectionSubtitle}>Twelve focused chapters, each hardening a different attack surface. Total time: roughly 6 hours.</p>
+        <p className={styles.sectionSubtitle}>Twelve focused chapters, each building on the last. Total time: roughly 5 hours.</p>
         <ol className={styles.chapterList}>
           {chapters.map((ch) => (
             <li key={ch.num} className={styles.chapterItem}>
@@ -91,6 +79,7 @@ function ChapterRoadmap(): ReactNode {
                 <div className={styles.chapterHeader}>
                   <strong className={styles.chapterTitle}>{ch.title}</strong>
                   <span className={styles.chapterTime}>{ch.time}</span>
+                  <span className={styles.antiPatternBadge}>{ch.antiPattern}</span>
                 </div>
                 <p className={styles.chapterDesc}>{ch.desc}</p>
               </div>
@@ -107,12 +96,12 @@ function QuickStartSection(): ReactNode {
     <section className={styles.quickstart}>
       <div className={styles.container}>
         <h2 className={styles.sectionTitle}>Quick Start</h2>
-        <p className={styles.sectionSubtitle}>Two commands and you are up — vulnerable app on device, guide in your browser.</p>
+        <p className={styles.sectionSubtitle}>Three steps and you are up — app on device, guide in your browser.</p>
         <div className={styles.quickstartGrid}>
           <div className={styles.codeBlock}>
             <p className={styles.codeLabel}>1. Clone and install</p>
-            <pre className={styles.pre}><code>{`git clone git@github.com:team360r/secure.git
-cd secure
+            <pre className={styles.pre}><code>{`git clone git@github.com:team360r/PilotBank.git
+cd PilotBank
 ./setup.sh`}</code></pre>
           </div>
           <div className={styles.codeBlock}>
@@ -135,12 +124,12 @@ function CtaSection(): ReactNode {
   return (
     <section className={styles.cta}>
       <div className={styles.container}>
-        <h2 className={styles.ctaTitle}>Ready to lock it down?</h2>
+        <h2 className={styles.ctaTitle}>Ready for takeoff?</h2>
         <p className={styles.ctaSubtitle}>
-          Start with Chapter 0 — understand the threat landscape, tour the vulnerable app,
-          and map out every security fix you will make across 12 chapters.
+          Start with Chapter 0 — install your AI tools, configure your environment,
+          and prepare for twelve chapters of hands-on learning.
         </p>
-        <Link className={styles.btnPrimary} to="/chapters/threat-briefing">Start Chapter 0: Threat Briefing</Link>
+        <Link className={styles.btnPrimary} to="/chapters/preflight">Start Chapter 0: Pre-Flight Checklist</Link>
       </div>
     </section>
   );
@@ -150,7 +139,7 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout title={siteConfig.title}
-      description="Harden a Flutter banking app against real-world attacks. 12 progressive chapters covering OWASP Mobile Top 10, encryption, auth, and secure deployment.">
+      description="Learn AI-assisted Flutter development with the Dual-Path method. 12 progressive chapters covering prompting, evaluation, debugging, testing, and team workflows.">
       <HeroSection />
       <main>
         <FeaturesSection />
