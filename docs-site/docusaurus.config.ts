@@ -3,19 +3,19 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
-  title: 'SecureBank Tutorial',
-  tagline: 'Harden a Flutter banking app against real-world attacks',
+  title: 'PilotBank Tutorial',
+  tagline: "You're the pilot. AI is your copilot.",
   favicon: 'img/favicon.ico',
 
   future: {
     v4: true,
   },
 
-  url: 'https://securebank-tutorial.dev',
+  url: 'https://pilotbank-tutorial.dev',
   baseUrl: '/',
 
   organizationName: 'team360r',
-  projectName: 'SecureBank',
+  projectName: 'PilotBank',
 
   onBrokenLinks: 'throw',
 
@@ -51,9 +51,9 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'SecureBank Tutorial',
+      title: 'PilotBank Tutorial',
       logo: {
-        alt: 'SecureBank Tutorial Logo',
+        alt: 'PilotBank Tutorial Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -64,7 +64,7 @@ const config: Config = {
           label: 'Tutorial',
         },
         {
-          to: '/chapters/threat-briefing',
+          to: '/chapters/preflight',
           label: 'Get Started',
           position: 'right',
         },
@@ -82,13 +82,13 @@ const config: Config = {
               to: '/intro',
             },
             {
-              label: 'Chapter 0: Threat Briefing',
-              to: '/chapters/threat-briefing',
+              label: 'Chapter 0: Pre-Flight Checklist',
+              to: '/chapters/preflight',
             },
           ],
         },
       ],
-      copyright: `Copyright \u00a9 ${new Date().getFullYear()} SecureBank Tutorial. Built with Docusaurus.`,
+      copyright: `Copyright \u00a9 ${new Date().getFullYear()} PilotBank Tutorial. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
