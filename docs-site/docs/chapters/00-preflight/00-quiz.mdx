@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/preflight/quiz
+title: "Quiz: Pre-Flight Checklist"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Pre-Flight Checklist
+
+Test your understanding of Chapter 0 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={0}>
+
+<QuizQuestion
+  question="What are the four stages of the AI feedback loop, in order?"
+  options={[
+    "Prompt → Generate → Copy → Paste",
+    "Context → Suggestion → Evaluation → Decision",
+    "Install → Configure → Code → Deploy",
+    "Input → Output → Test → Commit"
+  ]}
+  correctIndex={1}
+  explanation="The feedback loop is: you provide Context, the AI generates a Suggestion, you Evaluate whether it is correct and fits your project, then you make a Decision to accept, modify, or reject."
+/>
+
+<QuizQuestion
+  question="Why should you review your AI tool's privacy and telemetry settings?"
+  options={[
+    "To make the AI generate faster responses",
+    "To understand what code data is sent to remote servers and whether it is retained",
+    "To unlock premium features hidden in the settings",
+    "Privacy settings have no effect on AI coding tools"
+  ]}
+  correctIndex={1}
+  explanation="AI tools send code to remote servers for processing. Privacy settings control whether your code snippets are stored, used for model training, or deleted after generating a response. This matters especially for proprietary or client code."
+/>
+
+<QuizQuestion
+  question="What is the 'Ghost Copilot' anti-pattern?"
+  options={[
+    "Using an AI tool that has been discontinued by its developer",
+    "Running two AI tools at the same time so they conflict",
+    "Installing an AI tool but never configuring it or intentionally evaluating its suggestions",
+    "An AI tool that only works offline without internet access"
+  ]}
+  correctIndex={2}
+  explanation="A Ghost Copilot is installed and running but nobody is using it with intention — privacy settings are unchecked, suggestions are accepted without reading, and the tool's configuration has never been opened."
+/>
+
+<QuizQuestion
+  question="When is the chat panel more useful than inline suggestions?"
+  options={[
+    "For completing a line of code you have already started typing",
+    "For complex questions, multi-step reasoning, and natural language descriptions of what you want",
+    "The chat panel is always better than inline suggestions",
+    "Only when inline suggestions are disabled in your settings"
+  ]}
+  correctIndex={1}
+  explanation="Inline suggestions are ideal for boilerplate and completing lines, while the chat panel is better for complex questions where you need to describe what you want in natural language and get a longer, reasoned response."
+/>
+
+<QuizQuestion
+  question="Why do Flutter and Dart extensions improve your AI tool's suggestions?"
+  options={[
+    "They make the AI tool run faster by caching responses",
+    "They provide type information and analysis data that the AI uses for more accurate suggestions",
+    "They replace the AI tool's built-in code generation",
+    "They are required for the AI tool to start — without them it will not launch"
+  ]}
+  correctIndex={1}
+  explanation="Dart/Flutter extensions run the Dart analyzer, which provides type information, autocompletion data, and error diagnostics. AI tools read this analysis output to generate suggestions based on actual types rather than text patterns alone."
+/>
+
+<QuizQuestion
+  question="What is the purpose of the Cross-Check tab in a DualPath exercise?"
+  options={[
+    "To show the correct answer so you can copy it directly",
+    "To provide a checklist for verifying whether the AI's suggestion is correct and complete",
+    "To compare your code with other students' solutions",
+    "To automatically run tests on the AI-generated code"
+  ]}
+  correctIndex={1}
+  explanation="The Cross-Check tab lists specific things to verify about the AI's output — correct imports, proper patterns, common mistakes to watch for. It trains the habit of evaluating every suggestion before accepting it."
+/>
+
+</Quiz>

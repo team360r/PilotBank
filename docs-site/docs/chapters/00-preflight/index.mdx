@@ -2,19 +2,322 @@
 sidebar_position: 1
 slug: /chapters/preflight
 title: "Chapter 0: Pre-Flight Checklist"
-description: "Install and configure your AI coding tools before the tutorial begins."
+description: "Install and configure your AI coding tools, understand the feedback loop"
 ---
+
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Chapter 0: Pre-Flight Checklist
 
-> *"Before anything else, preparation is the key to success."* — Alexander Graham Bell
+> *"Checklists seem able to defend anyone, even the experienced, against failure in many more tasks than we realized."* — Atul Gawande
 
-**Estimated time:** ~20 min | **AI skill focus:** Setup and configuration | **Branch:** `chapter-0-preflight`
+**Estimated time:** ~20 min | **AI skill focus:** Tool setup & configuration | **Branch:** `chapter-0-preflight`
 
-**Anti-pattern:** Ghost Copilot — AI is installed but never configured or used.
+**Anti-pattern:** Ghost Copilot — installing an AI tool, accepting every default, and never learning what data it sends or how to configure it.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Why a Pre-Flight Checklist?
+
+A commercial pilot with 20,000 hours still runs the pre-flight checklist before every departure. Not because they have forgotten how to fly — because checklists catch the things that experience alone cannot. A loose fuel cap. A faulty instrument reading. A forgotten switch.
+
+AI coding tools deserve the same discipline. The developers who get the most from AI assistance are not the ones with the fanciest tools — they are the ones who understand what their tools are doing, what data they are sending, and how to configure the feedback loop between human and machine.
+
+This chapter ensures your copilot is properly configured before you hand it any controls. Skip it, and you risk spending the entire tutorial fighting a tool that is working against you instead of with you.
+
+---
+
+## Section 1: Choose Your Copilot
+
+You do not need a specific AI coding tool for this tutorial. The principles are universal. Here is a quick overview of the most common options:
+
+| Tool | Editor | Free Tier? | Key Strength |
+|------|--------|-----------|--------------|
+| GitHub Copilot | VS Code, JetBrains | Yes (limited) | Deep GitHub context, inline suggestions |
+| Claude Code | Terminal / CLI | Yes (limited) | Long context window, agentic coding |
+| Cursor | Cursor IDE | Yes (limited) | Full-file editing, multi-file context |
+| Gemini Code Assist | VS Code, JetBrains | Yes | Google ecosystem integration |
+| Cody (Sourcegraph) | VS Code | Yes | Codebase-wide context |
+
+Throughout this tutorial, we use generic terms — "your AI tool", "prompt your copilot" — so you can follow along with whatever you have installed. When a chapter exercise says "ask your copilot", use whichever tool you chose here.
+
+<div className="pb-callout pb-callout--blue">
+  <div className="pb-callout__header">🤖 Don't Have One Yet?</div>
+  <p>
+    <strong>GitHub Copilot</strong> is a solid starting point. Install the VS Code extension,
+    sign in with your GitHub account, and you are ready. The free tier is enough for this
+    entire tutorial.
+  </p>
+</div>
+
+---
+
+## Section 2: The Feedback Loop
+
+This is the single most important concept in AI-assisted development. Every interaction with your AI tool follows the same four-stage loop:
+
+```
+You provide CONTEXT  →  AI generates a SUGGESTION  →  You EVALUATE  →  You ACCEPT or REJECT
+```
+
+Let's break each stage down.
+
+### Context — What the AI Sees
+
+Your AI tool does not read your mind. It reads your **code**. The quality of its suggestions depends entirely on the context you provide:
+
+- **Current file** — the file open in your editor, especially the lines near your cursor
+- **Open files** — many tools scan other open tabs for related types and patterns
+- **Project structure** — file names, folder layout, and `pubspec.yaml` give the AI clues about your stack
+- **Your prompt** — comments, chat messages, or explicit instructions you type
+
+Better context produces better suggestions. This is why Chapter 1 focuses entirely on prompting.
+
+### Suggestion — What the AI Proposes
+
+Depending on your tool, suggestions appear in different forms:
+
+- **Inline completions** — ghost text that appears as you type, accepted with Tab
+- **Chat responses** — longer answers in a side panel, often with code blocks you copy
+- **Multi-file edits** — some tools propose changes across several files at once
+
+No suggestion is automatically correct. Every one needs the next stage.
+
+### Evaluation — YOUR Job
+
+This is where you earn your title as Pilot in Command. The AI is a copilot — it can suggest, but **you** decide. For every suggestion, ask:
+
+1. **Is it correct?** Does the code do what I intended?
+2. **Does it fit?** Does it follow our project's patterns and conventions?
+3. **Do I understand it?** Can I explain what this code does and why?
+
+If the answer to any of these is "no", you reject or modify. Never accept code you cannot explain.
+
+### Decision — Accept, Modify, or Reject
+
+- **Accept** — the suggestion is correct and fits your project. Press Tab (inline) or paste from chat.
+- **Modify** — the idea is right but the details need adjusting. Accept, then edit.
+- **Reject** — the suggestion is wrong, off-topic, or introduces a pattern you do not want. Press Escape (inline) or ignore it.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Cross-Check</div>
+  <p>
+    This loop runs hundreds of times per day once you are comfortable with AI tools.
+    Chapter 0 is about making sure the loop is set up correctly. The remaining chapters
+    teach you how to run it well.
+  </p>
+</div>
+
+---
+
+## Section 3: Configure Your Tool
+
+Now that you understand what the feedback loop looks like, let's make sure your tool is configured to support it.
+
+<div className="pb-step">
+  <div className="pb-step__badge">1</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Check your privacy settings</div>
+
+Every AI coding tool sends some of your code to a remote server for processing. That is how they work — the AI model runs in the cloud, not on your laptop. But the details matter:
+
+- **What gets sent?** Most tools send the current file and surrounding context. Some send your entire workspace.
+- **Is it stored?** Some providers retain your code snippets for model training. Others delete them after generating a response.
+- **Can you opt out?** Usually, yes.
+
+<Tabs>
+<TabItem value="copilot" label="GitHub Copilot">
+
+Open VS Code Settings and search for `copilot`. Look for **"Allow GitHub to use my code snippets for product improvements"** — consider disabling this for proprietary or client code. Also check **Copilot content exclusions**, which let you exclude specific files or directories from being sent.
+
+</TabItem>
+<TabItem value="cursor" label="Cursor">
+
+Open Cursor Settings (gear icon) and check the **Privacy** section. Cursor offers a "Privacy Mode" that prevents your code from being stored on their servers.
+
+</TabItem>
+<TabItem value="other" label="Other Tools">
+
+Open your tool's settings and look for sections labelled "Privacy", "Telemetry", or "Data". Check whether code snippets are retained after processing, whether your code is used for model training, and whether you can exclude sensitive files.
+
+</TabItem>
+</Tabs>
+
+**If your company has an AI usage policy, read it now.** If it does not have one, Chapter 10 (Crew Resource Management) will help you think about what one should contain.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">2</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Set up suggestion behaviour</div>
+
+AI tools offer two main interaction styles. You will use both throughout this tutorial:
+
+**Inline suggestions** appear as ghost text while you type. They are fast and low-friction — ideal for boilerplate, repetitive patterns, and completing lines you have already started. Accept with **Tab**, dismiss with **Escape**.
+
+**Chat panel** is a separate conversation window. It handles complex questions, multi-step reasoning, and explanations. Use it when you need to describe what you want in natural language rather than letting the AI guess from context.
+
+Start with inline suggestions **enabled**. You can always dismiss them with Escape, and the muscle memory of evaluating ghost text is a skill worth building early.
+
+  </div>
+</div>
+
+<div className="pb-step">
+  <div className="pb-step__badge">3</div>
+  <div className="pb-step__content">
+    <div className="pb-step__title">Flutter-specific setup</div>
+
+Your AI tool generates significantly better Flutter code when it has access to Dart type information and Flutter framework knowledge. Make sure the right language support is installed:
+
+<Tabs>
+<TabItem value="vscode" label="VS Code">
+
+Install these extensions alongside your AI tool: **Dart** (by Dart Code) for analysis, autocompletion, and type info, and **Flutter** (by Dart Code) for widget inspector, hot reload, and device selection.
+
+Your AI tool reads the Dart analyzer's output. Without it, suggestions are based on text patterns alone rather than actual types.
+
+</TabItem>
+<TabItem value="cursor" label="Cursor">
+
+Cursor includes built-in language support, but ensure Dart analysis is active. Open any `.dart` file and check that you see type information on hover. If not, install the Dart extension from the Cursor marketplace.
+
+</TabItem>
+<TabItem value="cli" label="CLI Tools (Claude Code, etc.)">
+
+CLI-based AI tools work alongside your editor. Make sure your Flutter project is in the working directory when you start the tool, that the `pubspec.yaml` is present so the tool understands your dependencies, and run `flutter pub get` first so all packages are resolved.
+
+</TabItem>
+</Tabs>
+
+  </div>
+</div>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Your AI tool is installed, privacy settings are reviewed, inline suggestions are
+    enabled, and Dart/Flutter language support is active. You are ready for first contact.
+  </p>
+</div>
+
+---
+
+## Section 4: First Contact
+
+Time to run the feedback loop for the first time. This exercise is deliberately simple — we are testing the setup, not building a feature.
+
+Open the PilotBank project in your editor and find `lib/app.dart`. You will see the welcome screen with a `Column` of widgets, ending with a `Text` widget that says "Start Chapter 0 in the tutorial to begin building."
+
+Your task: add a `Text` widget below that line that displays today's date, formatted like "Monday, 7 April 2026".
+
+<DualPath exercise="first-contact">
+  <Manual>
+
+**By hand (~5 min):**
+
+To do this manually, you would need to:
+
+1. Add `import 'package:intl/intl.dart';` at the top of the file (and add the `intl` package to `pubspec.yaml` if it is not already there)
+2. Inside the `Column`, after the last `Text` widget, add a `SizedBox` for spacing
+3. Create a `Text` widget that formats `DateTime.now()` using `DateFormat('EEEE, d MMMM yyyy')`
+4. Remove `const` from any parent widget that now depends on a runtime value
+
+That is four separate things to know and remember. Let's see how the AI path compares.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~2 min):**
+
+Open `lib/app.dart`. Place your cursor after the last `Text` widget in the `Column` (the "Start Chapter 0" line) and type a comment:
+
+```dart
+// Display today's date formatted as "Monday, 7 April 2026"
+```
+
+Wait for your AI tool to suggest code. What does it propose?
+
+**If using a chat panel instead:** ask your tool:
+
+> "In lib/app.dart, add a Text widget below the last one in the Column that shows today's date formatted as 'Monday, 7 April 2026'. Use the intl package."
+
+Review the suggestion before accepting. Does it look right? Move to the Cross-Check tab.
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review what your AI suggested against this checklist:
+
+- Did it add `import 'package:intl/intl.dart';` at the top?
+- Did it use `DateFormat` correctly?
+- Is the format pattern correct? The pattern for "Monday, 7 April 2026" is `'EEEE, d MMMM yyyy'`
+- Did it use `DateTime.now()`?
+- Is the styling consistent with the other `Text` widgets in the `Column`?
+- Did it handle the `const` keyword correctly? A widget containing `DateTime.now()` cannot be `const`
+
+**Common AI mistakes on this task:**
+
+- **Wrong DateFormat pattern** — `'EEE'` gives "Mon" not "Monday", `'dd'` gives "07" not "7"
+- **Adding `const`** to a widget that depends on `DateTime.now()` — this is a compile error
+- **Missing the `intl` import** — the code looks right but will not compile
+- **Not adding `intl` to `pubspec.yaml`** — the import exists but the package is not available
+
+If the AI got any of these wrong, that is perfectly normal and exactly why the Cross-Check step exists. Fix the issues and move on.
+
+  </CrossCheck>
+</DualPath>
+
+This is the **Dual-Path pattern** in action. Every chapter exercise uses it. The Manual tab reminds you what the work involves. The AI-Assisted tab has you try it with your copilot. The Cross-Check tab tells you what to verify. You will get very familiar with this rhythm.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Cross-Check</div>
+  <p>
+    Did you actually <strong>read</strong> the AI's suggestion before accepting it? If you
+    hit Tab without looking, you just demonstrated the anti-pattern for this chapter. Go back
+    and do it again — this time, read every line the AI proposes before you accept.
+  </p>
+</div>
+
+---
+
+## Section 5: The Anti-Pattern — Ghost Copilot
+
+Every chapter in PilotBank names an anti-pattern to avoid. Chapter 0's anti-pattern is the **Ghost Copilot**.
+
+A Ghost Copilot is an AI tool that is installed, running, and technically functional — but nobody is actually *using* it with intention. It haunts your editor, occasionally producing suggestions that get accepted without review or ignored without thought.
+
+**Signs you have a Ghost Copilot:**
+
+- You do not know what privacy settings your tool uses
+- You have never opened the AI tool's settings or preferences panel
+- You accept every inline suggestion without reading it first
+- You do not know the keyboard shortcut to dismiss a suggestion
+- You have never used the chat panel to ask a question about your code
+- Your tool has been installed for weeks but you could not name three things it does well
+
+**The fix is what you just did in this chapter.** You reviewed your tool's configuration. You understood the feedback loop. You ran it once with intention — reading the suggestion, checking it against known criteria, and making a deliberate decision to accept or reject.
+
+A configured copilot is not a Ghost Copilot. Keep it that way by continuing to evaluate every suggestion, especially when the code looks "close enough."
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    You have installed and configured an AI coding tool, understood the four-stage
+    feedback loop, completed your first AI-assisted edit, and learned what a Ghost
+    Copilot looks like. Chapter 0 is complete.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+Your copilot is configured and you have run the feedback loop once. But that first exercise was gentle — you told the AI exactly what you wanted, in detail.
+
+In **Chapter 1: Filing Your Flight Plan**, you will learn the single most important skill in AI-assisted development: how to write prompts that produce the code you actually want. The difference between a vague prompt and a precise one is the difference between fighting the AI and flying with it.
+
+See you at the gate.
