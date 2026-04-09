@@ -5,16 +5,179 @@ title: "Chapter 8: Radio Calls"
 description: "Generate documentation, commit messages, and PR descriptions."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 8: Radio Calls
 
 > *"The single biggest problem in communication is the illusion that it has taken place."* — George Bernard Shaw
 
 **Estimated time:** ~20 min | **AI skill focus:** Documentation generation | **Branch:** `chapter-8-radio-calls`
 
-**Anti-pattern:** Radio Silence — Never using AI for documentation, messages, or communication.
+**Anti-pattern:** Radio Silence — shipping AI-generated documentation without verifying it.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: AI for Dartdoc Comments
+
+Dartdoc comments are the documentation strings that appear above classes, methods, and properties in Dart code. They use the `///` syntax and are displayed in IDEs, documentation tools, and API references.
+
+AI is good at generating dartdoc comments because:
+- **It can infer purpose from code.** A method called `markAllRead` that iterates a list and sets `read: true` is clearly documented as "Marks all notifications as read."
+- **It follows the dartdoc format.** Triple-slash comments, parameter descriptions with `[paramName]`, return value descriptions — these follow a well-documented pattern.
+- **It fills in what you skip.** Most developers skip documentation for "obvious" methods. AI generates it consistently, even for simple getters.
+
+AI is bad at dartdoc comments because:
+- **It describes what it THINKS the code does, not what it actually does.** If a method has a bug, the AI documents the intended behaviour, not the actual behaviour.
+- **It invents context.** A method called `login` might be documented as "Authenticates the user against the remote server" when it actually checks hardcoded credentials in mock data.
+- **It copies patterns from training data.** Generic descriptions like "Creates an instance of [ClassName]" add no value — the reader already knows that from the constructor syntax.
+
+The rule: AI generates the first draft. You verify every comment against the actual code. This takes less time than writing from scratch, but more time than copy-pasting without reading.
+
+---
+
+## Section 2: Build the Settings Screen and Generate Documentation
+
+<DualPath exercise="settings-docs">
+  <Manual>
+
+**By hand (~15 min):**
+
+Replace the placeholder `lib/screens/settings_screen.dart` with a full implementation:
+
+1. Make it a `ConsumerStatefulWidget`
+2. Add a user info section at the top showing the user's initials in a `CircleAvatar`, their name, and their email (from `mockUser`)
+3. Add three `SwitchListTile` widgets: Push notifications (default on), Biometric login (default off), Dark mode (default off)
+4. Add an "About PilotBank" `ListTile` that opens `showAboutDialog`
+5. Add a "Sign out" `ListTile` with red styling that calls `authProvider.notifier.logout()`
+
+Then write dartdoc comments for three files: `models.dart` (document each class and enum), `auth_provider.dart` (document `AuthState`, `AuthNotifier`, and each method), and `settings_screen.dart` (document the class and its state fields).
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Replace the placeholder settings_screen.dart with a ConsumerStatefulWidget. Show a user info section at the top with a CircleAvatar showing the user's initials from mockUser, their name and email. Add three SwitchListTiles: Push notifications (default true), Biometric login (default false), Dark mode (default false). Add an About PilotBank ListTile that calls showAboutDialog with app name PilotBank and version 1.0.0. Add a Sign out ListTile styled in red that calls ref.read(authProvider.notifier).logout(). Import auth_provider.dart and mock_data.dart."
+
+Then generate documentation:
+
+> "Generate dartdoc comments for every class, enum, and public method in models.dart. Use /// syntax. Describe what each class represents in the PilotBank app. For constructors, only add comments if they do something non-obvious."
+
+> "Generate dartdoc comments for AuthState, AuthNotifier, and each method in auth_provider.dart. Describe what each method does and any side effects."
+
+> "Generate dartdoc comments for SettingsScreen and its state fields."
+
+  </AIAssisted>
+  <CrossCheck>
+
+**This is the most important cross-check in the chapter.** Read every generated dartdoc comment and compare it against the actual code.
+
+For `models.dart`:
+- Does the `User` documentation mention anything about authentication or server connections? It should not — `User` is a plain data class with no logic.
+- Does the `Transaction` documentation mention a database? It should not — transactions come from `mock_data.dart`.
+
+For `auth_provider.dart`:
+- Does the `login` method documentation say it "authenticates against a server" or "validates credentials remotely"? **That is wrong.** The method checks hardcoded credentials. The documentation should say exactly that, or describe it as "validates credentials against expected values."
+- Does the `logout` method documentation mention "clearing tokens" or "revoking sessions"? **That is wrong.** It resets the state to the default. No tokens exist.
+
+For `settings_screen.dart`:
+- Does the documentation mention "persisting preferences" or "saving to local storage"? **That is wrong.** The toggle states are in-memory only — they reset when the app restarts.
+
+If any generated comment describes functionality that does not exist in the code, correct it. This is exactly the Radio Silence anti-pattern — and you just caught it.
+
+  </CrossCheck>
+</DualPath>
+
+---
+
+## Section 3: AI for Commit Messages and PR Descriptions
+
+Beyond code documentation, AI is useful for another kind of writing: commit messages and pull request descriptions. These are communication artefacts — they tell other developers what changed and why.
+
+**Commit messages:**
+
+A conventional commit message has a type, optional scope, and description:
+
+```
+feat(transactions): add filter chips and date-grouped transaction list
+```
+
+You can prompt AI to generate these:
+
+> "Summarise the following diff as a conventional commit message. Use the format: type(scope): description. Types: feat, fix, refactor, test, docs, chore. Keep the description under 72 characters."
+
+AI handles this well because commit message conventions are well-documented and the diff provides all the context. The cross-check is simple: does the message accurately describe what changed?
+
+**PR descriptions:**
+
+Pull request descriptions need more structure. A useful template:
+
+```markdown
+## What changed
+- Added transactions screen with filter chips
+- Extracted TransactionTile into reusable widget
+
+## Why
+- Users need to view and filter transaction history per account
+
+## How to test
+1. Navigate to Dashboard
+2. Tap any account card
+3. Verify transactions appear grouped by date
+4. Test each filter chip
+```
+
+> "Generate a PR description for this branch. Use sections: What changed (bullet points), Why (one sentence), How to test (numbered steps). Base it on the commit history."
+
+The cross-check: read the "How to test" section and actually follow the steps. If a step does not work, the AI described what it thought the code does, not what it actually does.
+
+---
+
+## Section 4: The Anti-Pattern — Radio Silence
+
+Chapter 8's anti-pattern is **Radio Silence**.
+
+In aviation, radio silence means no one is transmitting. In AI-assisted development, Radio Silence means shipping AI-generated documentation without reading it. The documentation exists — it looks professional, it uses proper dartdoc syntax, it appears in IDE tooltips. But nobody verified whether it describes the actual code.
+
+**How it happens:**
+
+1. You prompt the AI: "Generate dartdoc comments for this file"
+2. The AI produces clean, professional documentation for every class and method
+3. You commit the file — the code looks well-documented
+4. A new team member reads the docs and learns that `login()` "authenticates against the backend API"
+5. The new team member spends two hours looking for the API endpoint that does not exist
+6. The documentation was wrong. The method checks hardcoded credentials.
+
+**The damage is subtle.** Wrong documentation is worse than no documentation. No documentation forces developers to read the code. Wrong documentation sends them on a wild goose chase, trusting words that do not match reality.
+
+**Common lies in AI-generated dartdoc:**
+- "Fetches data from the server" — when the data comes from a local mock
+- "Persists the preference to local storage" — when the value is in-memory only
+- "Validates the input against the schema" — when there is no schema
+- "Thread-safe implementation" — in a single-threaded Dart isolate
+
+Each of these sounds plausible. Each is wrong. The AI generated them because they match common patterns in its training data, not because they match your code.
+
+**The fix:** Treat AI-generated documentation the same way you treat AI-generated code — as a first draft that requires review. Read every comment. Compare it to the code. Fix anything that describes functionality that does not exist.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>AI-generated documentation describes what the AI thinks the code does, not what it actually does.</strong>
+    Every dartdoc comment, every commit message, every PR description must be verified against the
+    real code. Wrong documentation is worse than no documentation — it sends your team in the
+    wrong direction with confidence.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has a settings screen with user info, preferences, and sign-out. You have practised generating dartdoc comments, commit messages, and PR descriptions with AI — and you have learned to cross-check every piece of generated documentation against the actual code.
+
+In **Chapter 9: Mayday Protocol**, you will learn about the security and intellectual property risks of using AI tools — what data you send, what you should never paste, and how to protect your codebase.
+
+Clear comms confirmed. Next frequency loaded.

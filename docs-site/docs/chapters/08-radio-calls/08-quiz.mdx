@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/radio-calls/quiz
+title: "Quiz: Radio Calls"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Radio Calls
+
+Test your understanding of Chapter 8 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={8}>
+
+<QuizQuestion
+  question="What is the biggest risk of AI-generated dartdoc comments?"
+  options={[
+    "They use incorrect dartdoc syntax",
+    "They are too verbose and clutter the code",
+    "They describe what the AI thinks the code does rather than what it actually does — inventing context like 'fetches from the server' when data comes from a local mock",
+    "They slow down the Dart compiler"
+  ]}
+  correctIndex={2}
+  explanation="AI-generated documentation often describes common patterns from training data rather than the actual implementation. A method checking hardcoded credentials might be documented as 'authenticates against the backend API.' This mismatch sends developers looking for functionality that does not exist. The documentation is syntactically correct but semantically wrong."
+/>
+
+<QuizQuestion
+  question="Why is wrong documentation worse than no documentation?"
+  options={[
+    "It takes up more disk space",
+    "It causes compilation errors",
+    "No documentation forces developers to read the code; wrong documentation sends them on a wild goose chase trusting words that do not match reality",
+    "It violates the Dart style guide"
+  ]}
+  correctIndex={2}
+  explanation="When there is no documentation, developers read the source code and understand the actual behaviour. When documentation exists but is wrong, developers trust the documentation and form incorrect mental models. A new team member reading 'authenticates against the backend API' will spend hours searching for an API endpoint that does not exist."
+/>
+
+<QuizQuestion
+  question="What is the correct workflow for generating commit messages with AI?"
+  options={[
+    "Let the AI generate a commit message from the file names only",
+    "Provide the diff to the AI, ask for a conventional commit format, then verify the message accurately describes what changed",
+    "Use whatever message the AI generates without reviewing it",
+    "Write the commit message yourself — AI cannot help with this"
+  ]}
+  correctIndex={1}
+  explanation="The best workflow is: show the AI the diff, ask for a conventional commit message (type(scope): description), and then verify the result. The diff provides all the context the AI needs, and the conventional format is well-documented. The cross-check is simple: does the message accurately describe what changed? If not, correct it."
+/>
+
+<QuizQuestion
+  question="When verifying AI-generated dartdoc for a login method that checks hardcoded credentials, which comment would you flag as incorrect?"
+  options={[
+    "/// Validates the provided email and password credentials.",
+    "/// Authenticates the user against the remote authentication server.",
+    "/// Updates the auth state based on credential matching.",
+    "/// Checks email and password against expected values."
+  ]}
+  correctIndex={1}
+  explanation="'Authenticates the user against the remote authentication server' is wrong — the method checks hardcoded credentials locally, not against any server. The other options correctly describe what the code actually does: validating credentials, updating state, or checking against expected values. This is exactly the kind of plausible-but-wrong documentation that AI generates."
+/>
+
+<QuizQuestion
+  question="What is the 'Radio Silence' anti-pattern?"
+  options={[
+    "Refusing to use AI tools for any documentation work",
+    "Shipping AI-generated documentation without reading or verifying it against the actual code",
+    "Not writing any documentation at all",
+    "Using AI to generate code but not documentation"
+  ]}
+  correctIndex={1}
+  explanation="Radio Silence is the anti-pattern of shipping AI-generated documentation without verification. The documentation looks professional and uses correct syntax, but nobody checked whether it describes the actual code. It creates a false sense of documentation coverage — the docs exist but they describe a different codebase than the one you shipped."
+/>
+
+<QuizQuestion
+  question="How should you verify the 'How to test' section of an AI-generated PR description?"
+  options={[
+    "Check that the Markdown formatting is correct",
+    "Ensure it has at least three numbered steps",
+    "Actually follow the steps and verify each one works as described in the running app",
+    "Ask the AI to review its own testing instructions"
+  ]}
+  correctIndex={2}
+  explanation="The only way to verify testing instructions is to follow them. If a step says 'Tap any account card' but the app does not navigate to the transactions screen, the AI described what it thought the code does. Formatting checks and step counts tell you nothing about accuracy. And asking the AI to review itself is circular — it will confirm its own assumptions."
+/>
+
+</Quiz>
