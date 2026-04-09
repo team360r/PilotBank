@@ -1,0 +1,96 @@
+/* ── DualPath container ── */
+.container {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 10px;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+/* ── Tab bar ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+/* ── Individual tab button ── */
+.tab {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-600);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.tab:hover {
+  color: var(--ifm-color-emphasis-800);
+}
+
+/* ── Active tab: Manual (grey) ── */
+.tabActiveManual {
+  color: var(--ifm-color-emphasis-800);
+  border-bottom-color: #757575;
+  background: rgba(117, 117, 117, 0.06);
+}
+
+/* ── Active tab: AI-Assisted (indigo) ── */
+.tabActiveAI {
+  color: #283593;
+  border-bottom-color: #283593;
+  background: rgba(40, 53, 147, 0.06);
+}
+
+[data-theme='dark'] .tabActiveAI {
+  color: #7986CB;
+  border-bottom-color: #7986CB;
+  background: rgba(121, 134, 203, 0.1);
+}
+
+/* ── Active tab: Cross-Check (amber) ── */
+.tabActiveCheck {
+  color: #F57F17;
+  border-bottom-color: #F9A825;
+  background: rgba(249, 168, 37, 0.06);
+}
+
+[data-theme='dark'] .tabActiveCheck {
+  color: #FFCA28;
+  border-bottom-color: #FFCA28;
+  background: rgba(255, 202, 40, 0.1);
+}
+
+/* ── Tab panel content ── */
+.content {
+  padding: 1.5rem;
+}
+
+/* ── Panel type accents (left border) ── */
+.panelManual {
+  border-left: 3px solid #757575;
+  padding-left: 1rem;
+}
+
+.panelAI {
+  border-left: 3px solid #283593;
+  padding-left: 1rem;
+}
+
+[data-theme='dark'] .panelAI {
+  border-left-color: #7986CB;
+}
+
+.panelCheck {
+  border-left: 3px solid #F9A825;
+  padding-left: 1rem;
+}
+
+[data-theme='dark'] .panelCheck {
+  border-left-color: #FFCA28;
+}
