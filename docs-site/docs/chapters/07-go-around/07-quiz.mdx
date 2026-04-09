@@ -1,0 +1,75 @@
+---
+sidebar_position: 2
+slug: /chapters/go-around/quiz
+title: "Quiz: Go-Around"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Go-Around
+
+Test your understanding of Chapter 7 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={7}>
+
+<QuizQuestion
+  question="Which of these is a good refactoring prompt for an AI tool?"
+  options={[
+    "\"Make this code better\"",
+    "\"Clean up this file\"",
+    "\"Extract the date formatting logic into a shared helper function in lib/utils/date_helpers.dart\"",
+    "\"Refactor this to be more maintainable\""
+  ]}
+  correctIndex={2}
+  explanation="A good refactoring prompt names the specific transformation (extract), the specific code (date formatting logic), and the specific destination (lib/utils/date_helpers.dart). The other prompts are vague — they describe a feeling ('better', 'clean', 'maintainable') rather than a concrete action. AI cannot optimise for feelings; it can execute named transformations."
+/>
+
+<QuizQuestion
+  question="What is the 'explain then refactor' technique?"
+  options={[
+    "Ask the AI to explain what refactoring is, then do it yourself manually",
+    "First ask the AI to explain the current code structure, verify its understanding, then ask for a specific transformation",
+    "Write comments explaining every line, then ask the AI to simplify the code",
+    "Ask the AI to refactor first, then ask it to explain what it changed"
+  ]}
+  correctIndex={1}
+  explanation="The two-step technique is: (1) ask the AI to explain the code — this verifies it understands the structure before changing it; (2) ask for a specific, named transformation. If the AI's explanation is wrong in Step 1, you know not to trust it with Step 2. This catches misunderstandings before they become bugs."
+/>
+
+<QuizQuestion
+  question="What is the 'Lost in the Clouds' anti-pattern?"
+  options={[
+    "Using AI to refactor code that is stored in cloud services",
+    "Making vague refactoring requests that produce multiple rounds of unrecognisable changes, leaving you with code nobody fully understands",
+    "Refactoring too many files at once in a single commit",
+    "Using cloud-based AI tools instead of local ones for refactoring"
+  ]}
+  correctIndex={1}
+  explanation="Lost in the Clouds happens when vague prompts ('refactor this', 'make it better') give the AI permission to change anything. After multiple rounds of undirected changes, the code is unrecognisable, the diff is larger than expected, and nobody fully understands what the code does. The fix: revert, identify ONE specific transformation, prompt for that only."
+/>
+
+<QuizQuestion
+  question="Why is it important to group transactions by date in the UI?"
+  options={[
+    "It makes the database queries faster",
+    "It is required by the Flutter framework for ListView performance",
+    "It provides temporal context — users scan for 'what happened today' and 'what happened yesterday', not individual transaction IDs",
+    "It reduces the number of widgets rendered on screen"
+  ]}
+  correctIndex={2}
+  explanation="Date grouping is a UX pattern, not a technical requirement. Users think in terms of time — 'what did I spend today?' — not in terms of transaction IDs or account numbers. Grouping by date matches the user's mental model of their finances. This is the kind of design decision you should make yourself, not delegate to AI."
+/>
+
+<QuizQuestion
+  question="When should you perform a 'go-around' during refactoring?"
+  options={[
+    "When the AI suggests using a design pattern you have not used before",
+    "When you have prompted 'refactor' multiple times, the diff is larger than expected, and you cannot describe what improved",
+    "When the code compiles but has new warnings",
+    "When the refactoring takes more than five minutes"
+  ]}
+  correctIndex={1}
+  explanation="A go-around is the disciplined decision to abandon an approach that is not working. The signs: multiple vague prompts, an unexpectedly large diff, and inability to describe what improved. The response: revert to the last known good state, identify one specific change, and prompt for that change only. A go-around is not failure — it is good airmanship."
+/>
+
+</Quiz>

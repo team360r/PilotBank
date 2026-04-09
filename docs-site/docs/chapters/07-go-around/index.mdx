@@ -5,16 +5,169 @@ title: "Chapter 7: Go-Around"
 description: "Refactor code with targeted AI assistance."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 7: Go-Around
 
 > *"Any fool can write code that a computer can understand. Good programmers write code that humans can understand."* — Martin Fowler
 
 **Estimated time:** ~25 min | **AI skill focus:** Refactoring assistance | **Branch:** `chapter-7-go-around`
 
-**Anti-pattern:** Lost in the Clouds — Over-refactoring with AI until the code is unrecognisable.
+**Anti-pattern:** Lost in the Clouds — vague refactoring requests that produce unrecognisable code.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: Targeted Refactoring
+
+Refactoring with AI works brilliantly — when you are specific. It fails spectacularly when you are vague.
+
+**Good refactoring requests:**
+- "Extract the transaction list item into its own `TransactionTile` widget in a separate file."
+- "Rename `tx` to `transaction` everywhere in this file for readability."
+- "Replace the three inline `Container` decorations with a shared helper method."
+
+**Bad refactoring requests:**
+- "Make this better."
+- "Refactor this code."
+- "Clean this up."
+
+The difference is precision. A good request names the exact transformation: extract, rename, inline, replace. A bad request describes a feeling: better, cleaner, improved. AI cannot optimise for a feeling. It can execute a transformation.
+
+When you tell an AI to "refactor this," it has to guess what you want. It might:
+- Add design patterns you do not need (Repository pattern for mock data)
+- Introduce abstractions that increase complexity (generic base classes for two concrete widgets)
+- Rename things to match conventions from a different framework
+- Restructure code in a way that breaks your mental model of the project
+
+Each of these changes may be technically valid. None of them may be what you wanted.
+
+**The rule:** State the specific transformation. "Extract," "rename," "inline," "replace X with Y." If you cannot name the transformation, you are not ready to refactor.
+
+---
+
+## Section 2: Build the Transactions Screen
+
+The transactions screen is the last major data screen in PilotBank. It displays a filtered, date-grouped list of transactions for a given account. Building it gives you a realistic codebase to practise targeted refactoring.
+
+<DualPath exercise="transactions-screen">
+  <Manual>
+
+**By hand (~15 min):**
+
+Replace the placeholder `lib/screens/transactions_screen.dart` with a full implementation:
+
+1. Make it a `ConsumerStatefulWidget` that takes an `accountId` parameter
+2. Add a `_selectedFilter` state of type `TransactionType?` — null means "show all"
+3. Build three `FilterChip` widgets in a row: All, Income (credit), Spending (debit)
+4. Filter transactions based on the selected chip
+5. Group filtered transactions by date heading (Today, Yesterday, or "1 Apr 2026" format)
+6. Display each group with a date heading and a list of transaction tiles
+7. Show an empty state when no transactions match the filter
+
+Create `lib/widgets/transaction_tile.dart`:
+
+1. A `StatelessWidget` taking a `Transaction`
+2. Show an icon (arrow down for credit, arrow up for debit)
+3. Show the description and date
+4. Show the amount with `+` or `-` prefix, green for credit
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Replace the placeholder transactions_screen.dart with a full ConsumerStatefulWidget. It takes an accountId parameter and watches transactionsProvider(accountId). Add a _selectedFilter state of type TransactionType? (null means all). Build a row of three FilterChips — All, Income, Spending — that set the filter. Filter the transactions, group them by date (Today, Yesterday, or '1 Apr 2026' format), and display each group with a heading and a list of TransactionTile widgets. Show an empty state icon and 'No transactions found' when the filtered list is empty. Import from providers/accounts_provider.dart and widgets/transaction_tile.dart."
+
+> "Create lib/widgets/transaction_tile.dart. A StatelessWidget taking a Transaction. Show an icon container (arrow_downward green for credit, arrow_upward red for debit), the description, the formatted date, and the amount with +/- prefix. Use AppColors for styling. The amount should be green for credits."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review the transactions screen:
+
+Does the `_selectedFilter` default to `null`? This means "All" is selected by default. If it defaults to a specific type, the user sees a filtered view on first load — confusing.
+
+Does the date grouping handle "Today" and "Yesterday" correctly? The comparison should use `DateTime(year, month, day)` to strip time components. Comparing raw `DateTime` objects will never match because the times differ.
+
+Does the empty state appear when the filter excludes all transactions? Switch to "Income" when there are no credit transactions — you should see the empty state, not a blank screen.
+
+Does `TransactionTile` use the `Transaction` model from `models.dart`? Not a custom class, not a Map — the same model used everywhere else in the app.
+
+  </CrossCheck>
+</DualPath>
+
+---
+
+## Section 3: "Explain Then Refactor"
+
+The most effective refactoring workflow with AI is two steps, not one.
+
+**Step 1 — Explain:** Ask the AI to explain the current code structure.
+
+> "Explain the structure of transactions_screen.dart. What are the main responsibilities? Where is the filtering logic? Where is the grouping logic? What widgets are built inline?"
+
+The AI produces a summary. You read it and confirm it matches your understanding. If the AI misunderstands the code, you correct it before proceeding.
+
+**Step 2 — Refactor:** Now ask for a specific transformation.
+
+> "Extract the inline TransactionTile widget (the Card with icon, description, date, and amount) into a separate file at lib/widgets/transaction_tile.dart."
+
+This two-step approach works because:
+- **Step 1 verifies understanding.** If the AI cannot explain the code correctly, it cannot refactor it correctly.
+- **Step 2 is precise.** You are not asking "make it better" — you are naming the exact widget to extract and the exact destination file.
+- **You catch errors earlier.** A wrong explanation in Step 1 is easy to spot. A wrong refactoring in Step 2 (without Step 1) might look plausible but introduce subtle bugs.
+
+**Try it now.** Ask your AI tool to explain `transactions_screen.dart`, then ask it to identify any duplicated patterns between `transactions_screen.dart` and `dashboard_screen.dart`. Common patterns might include: date formatting helpers, the use of `AppColors.textSecondary` for subheadings, or the `ListView` with padding pattern. These are candidates for extraction into shared utilities — but only if you decide the duplication is worth removing.
+
+---
+
+## Section 4: The Anti-Pattern — Lost in the Clouds
+
+Chapter 7's anti-pattern is **Lost in the Clouds**.
+
+You are flying at cruise altitude and you enter a cloud bank. Visibility drops to zero. In aviation, the response is clear: trust your instruments, follow your heading, and do not make random course changes. In AI-assisted refactoring, the cloud bank is a vague request like "refactor this" or "make this better."
+
+**How it happens:**
+
+1. You look at a file and think "this could be cleaner"
+2. You prompt the AI: "Refactor this code to be cleaner and more maintainable"
+3. The AI restructures the file, adds abstractions, renames variables, and introduces a pattern
+4. You are not sure if this is better, so you prompt again: "Can you simplify this?"
+5. The AI undoes some changes and makes new ones
+6. After three rounds, the code is unrecognisable and you are not sure what it does
+
+**The damage:**
+
+Each vague prompt gives the AI permission to change anything. Without a specific goal, the AI optimises for what it thinks "clean code" means — which may involve patterns, abstractions, and conventions from completely different projects. After multiple rounds, you have code that no one on your team wrote, no one reviewed, and no one fully understands.
+
+**Signs you are lost in the clouds:**
+- You have prompted "refactor" more than twice without a specific goal
+- You cannot describe what the refactoring improved
+- The diff is larger than you expected
+- You are reviewing changes you did not ask for
+
+**The go-around:** Stop. Revert to the last known good state. Identify ONE specific thing you want to change. Prompt for THAT change only. Review. Repeat with the next specific change.
+
+A go-around is not failure. It is the disciplined decision to abandon an approach that is not working and try again with better information.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>"Refactor this" is not a refactoring goal.</strong> Name the
+    transformation: extract, rename, inline, replace. If you cannot name it,
+    you are not ready to refactor. Vague prompts produce vague results — and
+    vague results in a codebase become tech debt you did not choose.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has a fully functional transactions screen with filtering and date grouping, plus a reusable `TransactionTile` widget. You have practised the two-step "explain then refactor" technique and learned why vague refactoring requests lead to Lost in the Clouds.
+
+In **Chapter 8: Radio Calls**, you will use AI to generate documentation — dartdoc comments, commit messages, and PR descriptions — and learn why every piece of AI-generated documentation must be verified against the actual code.
+
+Instruments checked. Heading confirmed. On course.
