@@ -5,16 +5,187 @@ title: "Chapter 11: Landing"
 description: "Ship with CI, retrospective, and personal workflow."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 11: Landing
 
 > *"Any landing you can walk away from is a good landing."* — Aviation proverb
 
 **Estimated time:** ~20 min | **AI skill focus:** CI and workflow integration | **Branch:** `chapter-11-landing`
 
-**Anti-pattern:** Crash Landing — Skipping CI, review, and retrospective in AI-heavy workflows.
+**Anti-pattern:** Crash Landing — rushing the final 10% with AI.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: AI for CI/CD
+
+Continuous Integration ensures that every push and every pull request is automatically analysed and tested. Setting up a CI workflow is exactly the kind of boilerplate-heavy, convention-following task where AI excels.
+
+<DualPath exercise="ci-workflow">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `.github/workflows/ci.yml` with a workflow that runs on push to `main` and on pull requests to `main`. It should checkout the code, set up Flutter on the stable channel with caching enabled, run `flutter pub get`, run `flutter analyze`, and run `flutter test`.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Create a GitHub Actions workflow file at .github/workflows/ci.yml for a Flutter app. Trigger on push to main and pull requests to main. Steps: checkout with actions/checkout@v4, set up Flutter using subosito/flutter-action@v2 with channel stable and cache true, run flutter pub get, run flutter analyze, run flutter test. Use ubuntu-latest as the runner."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review the CI workflow:
+
+Does it use `channel: stable` and NOT a pinned Flutter version? Pinning a specific version (e.g., `flutter-version: 3.24.0`) causes the workflow to break when that version's `flutter_lints` package is yanked from pub.dev. Using `channel: stable` always gets the latest stable release with compatible lints.
+
+Does it use `subosito/flutter-action@v2`? This is the most widely used Flutter GitHub Action. Check that the version tag is `v2` (not `v1` or an unversioned reference).
+
+Does it use `actions/checkout@v4`? Not v2 or v3 — v4 is current and handles the latest runner features.
+
+Is caching enabled? `cache: true` in the Flutter action caches the pub cache and Flutter SDK, significantly reducing CI run times after the first build.
+
+Does it run `flutter pub get` before `flutter analyze`? Analysis requires dependencies to be resolved. Without `pub get`, analysis fails with unresolved import errors.
+
+  </CrossCheck>
+</DualPath>
+
+---
+
+## Section 2: AI for Release Notes
+
+Your git log contains every change made to PilotBank across eleven chapters. AI can transform that raw history into human-readable release notes.
+
+**Try this prompt:**
+
+> "Generate release notes from the following git log. Group changes by category: Features, Improvements, and Infrastructure. Use bullet points. Write for end users and developers, not for AI."
+
+The cross-check for release notes is straightforward: does every bullet point correspond to an actual change in the git history? AI sometimes invents features that sound plausible but were never implemented. Read each bullet point and verify it against the actual commits.
+
+**Common AI mistakes in release notes:**
+- Inventing features that were planned but not implemented
+- Describing internal refactoring as user-facing features
+- Overstating the impact of small changes
+- Omitting significant changes that had small diffs
+
+Release notes are communication — they tell users and stakeholders what changed. Wrong release notes erode trust the same way wrong documentation does (Chapter 8).
+
+---
+
+## Section 3: Retrospective
+
+You have built a complete Flutter banking app across eleven chapters. Before you ship, take stock of what you learned.
+
+### What AI helped with most
+
+**Boilerplate and scaffolding.** Widget structure, test setup, provider declarations, routing configuration — these follow well-documented patterns and AI generates them accurately. The time savings are significant and the error rate is low.
+
+**Test implementation.** Once you wrote the test descriptions (the "spec first" technique from Chapter 6), AI filled in the `pumpWidget`, `enterText`, `tap`, and `expect` calls reliably. The scaffolding is the hard part of test writing for AI; the assertions are where you added value.
+
+**Documentation drafts.** Dartdoc comments, commit messages, PR descriptions — AI produces first drafts that are structurally correct and need targeted editing rather than writing from scratch.
+
+### What AI was worst at
+
+**Validation logic.** The transfer screen's amount validation (Chapter 5) required specific business rules: minimum amount, maximum amount, decimal precision. AI generated a validator, but the boundary conditions needed manual adjustment. Domain-specific rules are where AI makes the most errors.
+
+**Edge cases.** Empty states, error handling, boundary conditions — AI tends to handle the happy path and skip the rest. Every screen in PilotBank has an empty state, and in each case, you had to specify it explicitly.
+
+**Design decisions.** Should the transactions screen use filter chips or a dropdown? Should notifications show a time-ago string or an absolute date? These are UX decisions that depend on context, user research, and product requirements. AI can implement either choice, but it cannot make the choice for you.
+
+### What surprised you
+
+Think about your experience. Which chapter's lesson was most unexpected? Where did AI exceed your expectations? Where did it fall short of what you expected? There are no wrong answers — the value is in honest reflection.
+
+### Your personal Dual-Path ratio
+
+Across the eleven chapters, approximately what percentage of code did you write by hand versus delegate to AI? There is no correct ratio. Some developers find their ratio is 70/30 (mostly AI with manual refinement). Others find it is 30/70 (mostly manual with AI for specific tasks). The ratio depends on your experience level, your comfort with the tools, and the nature of the task.
+
+What matters is that you CHOSE the ratio deliberately, based on the Dual-Path approach — not that you defaulted to one extreme.
+
+---
+
+## Section 4: The Decision Tree
+
+This is your reference card. Keep it visible when you start a new task.
+
+```
+Should I use AI for this task?
+|
++-- Is it boilerplate or repetitive?
+|     YES --> Delegate to AI. Review the output.
+|
++-- Does it require domain knowledge?
+|     YES --> Prompt with full context. Verify every
+|             assumption in the output.
+|
++-- Is it creative or design work?
+|     YES --> Design it yourself. Use AI to implement
+|             your design.
+|
++-- Does it involve secrets or proprietary code?
+|     YES --> NEVER paste secrets into AI prompts.
+|             Replace with placeholders first.
+|
++-- Am I in a hurry?
+|     YES --> SLOW DOWN. AI mistakes cost more to find
+|             and fix than the time you saved.
+|
++-- Default
+      Use AI for the first draft. Cross-check the output
+      against the actual requirements. Verify before
+      committing.
+```
+
+Every branch of this tree leads to one of two outcomes: delegate with verification, or do it yourself. There is no branch that says "accept without review." That branch does not exist because it should not exist.
+
+---
+
+## Section 5: The Anti-Pattern — Crash Landing
+
+Chapter 11's anti-pattern is the **Crash Landing**.
+
+A crash landing happens when a pilot rushes the final approach — too fast, too steep, skipping checklists. In software, a crash landing happens when you rush the final 10% — the CI setup, the deployment config, the release notes, the final review — because you are tired and want to ship.
+
+**How it happens:**
+
+1. You have built ten chapters of features, tests, and documentation
+2. You are on the final chapter — CI, release notes, shipping
+3. You think: "This is just config. I'll let AI handle it and ship."
+4. The AI generates a CI workflow with a pinned Flutter version that will break in two months
+5. The AI generates release notes that mention features you never implemented
+6. You ship without reviewing either one
+7. The CI breaks on the first PR. The release notes confuse your users.
+
+**The final 10% is where bugs hide.** CI configuration, deployment scripts, release notes — these are the artefacts that run in production, affect every developer, and are read by stakeholders. They deserve the same cross-checking as your business logic.
+
+**The temptation is strongest at the end.** You have been thorough for ten chapters. You have cross-checked every AI output. You are tired. The remaining tasks look simple. But "simple" is where assumptions hide — and assumptions in CI and deployment are the ones that break production.
+
+Every landing matters. This one especially.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>The final 10% is where bugs hide.</strong> CI configuration, deployment scripts,
+    and release notes deserve the same cross-checking as business logic. Do not rush the landing
+    because you are tired of flying. Every approach matters — especially the last one.
+  </p>
+</div>
+
+---
+
+## Closing
+
+You started as a pilot who had never worked with a copilot. Now you know when to hand over the controls, when to take them back, and how to run every cross-check.
+
+Across eleven chapters, you built a complete Flutter banking app — not by accepting every AI suggestion, and not by ignoring AI entirely. You used the Dual-Path approach: understand what the AI generates, verify it against the requirements, and take responsibility for every line that ships.
+
+You learned the anti-patterns — Autopilot, Tailwind, Black Box, Turbulence, Rubber Stamp, Lost in the Clouds, Radio Silence, Open Cockpit, Solo Pilot, and Crash Landing — not as abstract warnings, but as mistakes you caught in your own code.
+
+Your copilot is configured. Your team has protocols. Your CI pipeline runs on every PR. Your decision tree is on your wall.
+
+Happy flying.

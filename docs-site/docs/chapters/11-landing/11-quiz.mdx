@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/landing/quiz
+title: "Quiz: Landing"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Landing
+
+Test your understanding of Chapter 11 — and the entire tutorial — before you ship. You need all questions correct to pass.
+
+<Quiz chapter={11}>
+
+<QuizQuestion
+  question="Why should a Flutter CI workflow use 'channel: stable' instead of a pinned Flutter version?"
+  options={[
+    "The stable channel is faster to download",
+    "Pinned versions break when their associated flutter_lints package is yanked from pub.dev, while channel: stable always gets the latest compatible release",
+    "The stable channel includes beta features that are useful for CI",
+    "There is no difference — both approaches are equally reliable"
+  ]}
+  correctIndex={1}
+  explanation="Pinning a specific Flutter version (e.g., 3.24.0) creates a hidden dependency on that version's compatible packages. When a package like flutter_lints is yanked from pub.dev — which has happened — the pinned CI workflow breaks. Using channel: stable always resolves to the latest stable release with all compatible packages, avoiding this failure mode."
+/>
+
+<QuizQuestion
+  question="What is the most important cross-check for AI-generated release notes?"
+  options={[
+    "Verify the Markdown formatting is correct",
+    "Ensure every bullet point corresponds to an actual change in the git history — AI sometimes invents features that sound plausible but were never implemented",
+    "Check that the release notes are shorter than 500 words",
+    "Verify the notes mention AI assistance"
+  ]}
+  correctIndex={1}
+  explanation="AI-generated release notes sometimes include features that were discussed or planned but never implemented, or overstate the impact of small changes. The cross-check is: read each bullet point and find the corresponding commit or change. If you cannot find it, the AI invented it. Wrong release notes erode trust with users and stakeholders."
+/>
+
+<QuizQuestion
+  question="According to the decision tree, what should you do when a task requires domain knowledge?"
+  options={[
+    "Delegate entirely to AI — it knows more than you",
+    "Skip AI completely and do it manually",
+    "Prompt AI with full context, then verify every assumption in the output",
+    "Use AI for the first half and finish manually"
+  ]}
+  correctIndex={2}
+  explanation="Domain-specific tasks (validation rules, business logic, data transformations) require context that the AI does not have. You provide the context through your prompt, the AI generates a draft, and then you verify every assumption. The AI may generate structurally correct code with wrong boundary conditions or business rules — your domain knowledge catches those errors."
+/>
+
+<QuizQuestion
+  question="What is the 'Crash Landing' anti-pattern?"
+  options={[
+    "Deploying to production without any tests",
+    "Rushing the final 10% (CI, deployment, release notes) because you are tired, leading to configuration bugs and wrong documentation that affect every developer and user",
+    "Using AI to generate the entire application in one prompt",
+    "Shipping an app with too many features"
+  ]}
+  correctIndex={1}
+  explanation="The Crash Landing happens when you rush the final approach. After ten chapters of careful cross-checking, the temptation is to let AI handle the 'simple' remaining tasks — CI config, release notes, deployment scripts — without review. But these artefacts run in production, affect every developer, and are read by stakeholders. The final 10% is where bugs hide."
+/>
+
+<QuizQuestion
+  question="What did AI handle WORST across the PilotBank tutorial?"
+  options={[
+    "Widget structure and layout scaffolding",
+    "Test setup boilerplate (ProviderScope, MaterialApp, pumpWidget)",
+    "Validation logic, edge cases, and design decisions — domain-specific rules that require context the AI does not have",
+    "Dartdoc comment syntax and formatting"
+  ]}
+  correctIndex={2}
+  explanation="AI excels at boilerplate (widget structure, test setup, documentation syntax) because these follow well-documented patterns. It struggles with validation logic (business-specific boundary conditions), edge cases (empty states, error handling), and design decisions (UX choices that depend on user research). These require domain knowledge and deliberate thought — exactly what the Dual-Path approach preserves."
+/>
+
+<QuizQuestion
+  question="What is the core principle of the Dual-Path approach used throughout this tutorial?"
+  options={[
+    "Always use AI for the first draft, then rewrite everything manually",
+    "Use AI for implementation and manual coding for tests",
+    "Understand what the AI generates, verify it against requirements, and take responsibility for every line that ships — whether AI-generated or hand-written",
+    "Split work 50/50 between AI and manual coding"
+  ]}
+  correctIndex={2}
+  explanation="The Dual-Path approach is not about a specific ratio of AI to manual work. It is about deliberate choice and verification. For each task, you decide whether to delegate to AI or write manually based on the nature of the task. Either way, you understand the output, verify it against the requirements, and take full responsibility for the result. The pilot is always in command."
+/>
+
+</Quiz>
