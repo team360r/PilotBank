@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/crew-resource/quiz
+title: "Quiz: Crew Resource Management"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Crew Resource Management
+
+Test your understanding of Chapter 10 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={10}>
+
+<QuizQuestion
+  question="Which team persona benefits most from shared AI usage standards?"
+  options={[
+    "The Enthusiast — they need rules to slow down",
+    "The Skeptic — standards will convince them to use AI",
+    "The Silent Majority — they would use AI if they had clear, practical guidelines for what to use it for and how to review the output",
+    "The Tech Lead — standards give them more control over the team"
+  ]}
+  correctIndex={2}
+  explanation="The Silent Majority is the largest group and the one most affected by standards. Enthusiasts will use AI regardless of standards. Skeptics will be cautious regardless. The Silent Majority — developers who would use AI if someone showed them how — needs clear guidelines: what to use AI for, what not to use it for, and how to review the output."
+/>
+
+<QuizQuestion
+  question="When reviewing AI-generated code, which question best detects an overengineered solution?"
+  options={[
+    "\"Is the code formatted correctly?\"",
+    "\"Does this abstraction serve a current requirement, or is it only serving a hypothetical future requirement?\"",
+    "\"Did the AI use the latest version of the framework?\"",
+    "\"Is the code shorter than what I would have written?\""
+  ]}
+  correctIndex={1}
+  explanation="AI tends to add patterns and abstractions that serve hypothetical future needs rather than current requirements. A Repository pattern for mock data, abstract base classes for two concrete widgets, or a state machine for a boolean toggle — these are technically correct but practically unnecessary. The review check is: does this serve NOW or MAYBE LATER?"
+/>
+
+<QuizQuestion
+  question="Why is 'lines of code per day' a particularly bad metric when teams use AI tools?"
+  options={[
+    "Because AI-generated code has more lines per function",
+    "Because AI tools do not track line counts accurately",
+    "Because a developer can generate hundreds of lines of boilerplate in minutes with AI, making the metric even more misleading than it already was",
+    "Because different programming languages have different line counts for the same logic"
+  ]}
+  correctIndex={2}
+  explanation="Lines of code has always been a poor productivity metric, but AI makes it worse than useless. A developer can generate 500 lines of scaffolding in minutes using AI. This does not mean they were productive — it means they generated boilerplate. Measuring LOC incentivises generating more code, not better code."
+/>
+
+<QuizQuestion
+  question="What should happen to code review comment patterns AFTER a team adopts AI tools?"
+  options={[
+    "There should be fewer comments overall because AI code is higher quality",
+    "Comments should shift from formatting and boilerplate issues to logic, edge cases, and architecture — the things AI misses",
+    "Comments should focus entirely on whether code was AI-generated or hand-written",
+    "There should be more comments because AI code needs more scrutiny"
+  ]}
+  correctIndex={1}
+  explanation="Before AI adoption, many review comments address formatting, naming conventions, and boilerplate patterns. AI handles these consistently, so those comments should decrease. The remaining comments should focus on what AI misses: logic errors, missing edge cases, unnecessary abstractions, and architectural decisions. This shift indicates that the team is using AI for what it does well and humans for what they do well."
+/>
+
+<QuizQuestion
+  question="What is the 'Solo Pilot' anti-pattern?"
+  options={[
+    "A single developer who writes all the code without using AI",
+    "A team where each developer uses AI tools differently with no shared protocols — leading to inconsistent quality, security risks, and code nobody fully understands",
+    "A developer who uses only one AI tool instead of multiple tools",
+    "A team that relies on a single AI tool instead of diversifying"
+  ]}
+  correctIndex={1}
+  explanation="The Solo Pilot anti-pattern is the absence of team standards for AI use. Each developer follows their own instincts: one pastes secrets, another ships untested code, a third refuses to use AI at all. The result is inconsistent code quality and security risks. The fix is Crew Resource Management: shared protocols (prompt library, review checklist, security rules) that every team member follows."
+/>
+
+<QuizQuestion
+  question="Why should teams avoid measuring the 'AI suggestion acceptance rate'?"
+  options={[
+    "It is technically impossible to track",
+    "It is too expensive to monitor",
+    "Developers will accept more AI suggestions to improve their metric — incentivising exactly the wrong behaviour",
+    "AI acceptance rates are always too low to be meaningful"
+  ]}
+  correctIndex={2}
+  explanation="If you measure how often developers accept AI suggestions, you create an incentive to accept MORE suggestions — even wrong ones. Developers optimise for the metric, not for code quality. This is Goodhart's Law: when a measure becomes a target, it ceases to be a good measure. Track outcomes (defect rates, PR turnaround) not inputs (acceptance rates)."
+/>
+
+</Quiz>

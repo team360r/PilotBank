@@ -5,16 +5,241 @@ title: "Chapter 10: Crew Resource Management"
 description: "Integrate AI tools into team workflows."
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 10: Crew Resource Management
 
 > *"If everyone is moving forward together, then success takes care of itself."* — Henry Ford
 
 **Estimated time:** ~25 min | **AI skill focus:** Team integration | **Branch:** `chapter-10-crew-resource`
 
-**Anti-pattern:** Solo Pilot — Using AI tools individually without team standards.
+**Anti-pattern:** Solo Pilot — no team standards for AI use.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: The Mixed-Adoption Team
+
+When AI tools arrive on a team, three personas emerge immediately. Every team has all three. Ignoring any one of them guarantees friction.
+
+### The Enthusiast
+
+The Enthusiast uses AI for everything. Autocompletion, test generation, commit messages, code review summaries, PR descriptions, documentation — if AI can do it, the Enthusiast is already doing it.
+
+**Strengths:** Fast adoption, discovers useful workflows, generates institutional knowledge about what AI does well.
+
+**Risks:** Ships AI-generated code without sufficient review. Accepts tautological tests (Chapter 6). Pastes secrets without thinking (Chapter 9). Generates documentation that nobody verifies (Chapter 8). The Enthusiast's velocity is impressive, but their defect rate may be higher than they realise.
+
+### The Skeptic
+
+The Skeptic refuses to use AI. They see it as a crutch that produces low-quality code, introduces security risks, and erodes fundamental skills. They prefer to write everything by hand.
+
+**Strengths:** Deep understanding of their code. High-quality manual work. Catches issues that AI misses. Provides a valuable counterbalance to uncritical adoption.
+
+**Risks:** Slower on boilerplate-heavy tasks. May resist even high-value use cases (test scaffolding, documentation drafts). Can become a bottleneck if the rest of the team's velocity increases. The Skeptic's caution is valuable, but rigidity is not.
+
+### The Silent Majority
+
+The Silent Majority would use AI if someone showed them how. They have heard about these tools, maybe tried autocomplete once, but do not have a workflow. They are not enthusiasts and they are not skeptics — they are waiting for guidance.
+
+**This is the largest group.** And it is the group that team standards serve. The Enthusiast will use AI regardless of standards. The Skeptic will be cautious regardless. The Silent Majority needs clear, practical guidelines: what to use AI for, what not to use it for, and how to review the output.
+
+---
+
+## Section 2: Code Review for AI-Generated Code
+
+Code review is the single most important quality gate for AI-generated code. But reviewing AI code requires different attention than reviewing human-written code.
+
+**What reviewers should look for:**
+
+### 1. Tautological tests
+
+From Chapter 6 — tests that verify the implementation rather than the behaviour. AI-generated test suites often have high line counts but low coverage of actual requirements.
+
+**Review check:** "If I deleted the business logic, would this test still pass?"
+
+### 2. Overengineered solutions
+
+AI loves patterns. It will add a Repository pattern for mock data, create abstract base classes for two concrete widgets, or introduce a full state machine for a boolean toggle. These are technically correct and practically unnecessary.
+
+**Review check:** "Does this abstraction serve a current requirement, or is it only serving a hypothetical future requirement?"
+
+### 3. Missing edge cases
+
+AI handles the happy path well. It handles the sad path sometimes. It almost never handles the edge cases: empty lists, null values, maximum-length strings, timezone boundaries, concurrent access.
+
+**Review check:** "What happens when the input is empty, null, maximum, or concurrent?"
+
+### 4. Inconsistent naming
+
+AI does not know your team's naming conventions. It uses whatever conventions were most common in its training data. A Flutter team that uses `camelCase` for methods might receive `snake_case` from an AI trained on Python-heavy data.
+
+**Review check:** "Does this code follow OUR naming conventions, or the AI's defaults?"
+
+### 5. Unnecessary dependencies
+
+AI may suggest adding a package for something the standard library already handles. A date formatting package when `intl` is already in `pubspec.yaml`. A state management solution when Riverpod is already the team standard.
+
+**Review check:** "Can we do this with what we already have?"
+
+### The Checklist
+
+Teams can adopt this checklist for reviewing AI-generated code:
+
+```markdown
+## AI Code Review Checklist
+
+- [ ] Tests verify behaviour, not implementation
+- [ ] No unnecessary abstractions or patterns
+- [ ] Edge cases are handled (empty, null, max, error states)
+- [ ] Naming follows team conventions
+- [ ] No unnecessary new dependencies
+- [ ] No hardcoded secrets or credentials
+- [ ] Documentation matches actual code behaviour
+- [ ] Generated code has been tested manually, not just with AI tests
+```
+
+Print this. Put it next to your screen. Use it until it becomes automatic.
+
+---
+
+## Section 3: Team Prompts Library
+
+Shared prompt templates eliminate the biggest variable in AI-assisted development: prompt quality. When everyone uses the same templates, the output is more consistent and more reviewable.
+
+### "Create a screen" template
+
+```
+Create a Flutter screen called [ScreenName] as a [StatelessWidget/
+ConsumerWidget/ConsumerStatefulWidget].
+
+It should:
+- [Requirement 1]
+- [Requirement 2]
+- [Requirement 3]
+
+Use these existing project conventions:
+- Import theme from '../theme/app_colors.dart'
+- Use Riverpod providers from '../providers/'
+- Follow the same pattern as [ExistingScreen] for layout
+
+Do NOT:
+- Add packages not already in pubspec.yaml
+- Create abstract base classes
+- Add TODO comments
+```
+
+### "Write tests for" template
+
+```
+Generate widget tests for [ScreenName] in test/widget/[screen]_test.dart.
+
+Test these behaviours:
+1. [Behaviour 1 — what the user sees or does]
+2. [Behaviour 2]
+3. [Behaviour 3]
+
+Test setup:
+- Wrap in ProviderScope and MaterialApp
+- Use the helper pattern from test/widget/login_screen_test.dart
+- Call pumpAndSettle() after any interaction
+- Test error states and empty states, not just the happy path
+```
+
+### "Refactor this" template
+
+```
+Refactor [file_path] by performing this specific transformation:
+[extract/rename/inline/replace] [specific target].
+
+Keep everything else unchanged. Do not:
+- Rename variables I did not ask about
+- Add design patterns
+- Change the public API
+- Restructure the file layout
+```
+
+### "Review this code for" template
+
+```
+Review the following code for:
+1. Security issues (hardcoded secrets, exposed credentials)
+2. Missing edge cases (empty input, null values, error states)
+3. Naming consistency with [framework] conventions
+4. Unnecessary complexity or over-abstraction
+
+Do not suggest stylistic changes. Focus on correctness and security.
+```
+
+These templates are starting points. Adapt them to your team's stack, conventions, and preferences. The value is not in the specific words — it is in the consistency of using shared templates instead of ad-hoc prompts.
+
+---
+
+## Section 4: Measuring Impact
+
+When a team adopts AI tools, leadership will ask "Is it working?" The answer depends on what you measure — and what you avoid measuring.
+
+### What to track
+
+**PR turnaround time** should decrease. AI handles boilerplate, so developers spend less time on scaffolding and more time on logic and review. If PRs are taking longer, the team may be spending time fixing AI-generated issues rather than writing code.
+
+**Defect escape rate** should not increase. This is the percentage of bugs that reach production. If AI adoption increases velocity but also increases the defect escape rate, the net effect is negative. Track this closely in the first three months.
+
+**Code review comment patterns** should shift. Before AI adoption, many review comments are about formatting, naming, and boilerplate. After adoption, those are handled by the AI. Review comments should shift toward logic, edge cases, and architecture — the things AI misses.
+
+### What NOT to track
+
+**Lines of code per day** is meaningless with AI. A developer can generate 500 lines of boilerplate in minutes with AI. This does not mean they were five times more productive — it means they generated boilerplate. Lines of code has always been a poor metric; with AI, it is worse than useless.
+
+**AI suggestion acceptance rate** is gameable and misleading. If you measure how often developers accept AI suggestions, developers will accept more suggestions to improve their metric — even when the suggestions are wrong. This incentivises exactly the wrong behaviour.
+
+**"AI-assisted" vs "manual" commits** creates a false binary. Most real work is a mix — AI generates the scaffolding, the developer writes the logic, AI helps with tests, the developer reviews everything. Trying to categorise commits as "AI" or "not AI" misses the point.
+
+---
+
+## Section 5: The Anti-Pattern — Solo Pilot
+
+Chapter 10's anti-pattern is the **Solo Pilot**.
+
+In aviation, Crew Resource Management (CRM) exists because solo piloting — one person making all decisions without protocols or cross-checks — leads to crashes. The same applies to AI adoption on a team.
+
+**How it happens:**
+
+No one sets team standards. Each developer uses AI tools differently:
+- Developer A pastes production credentials into prompts (Open Cockpit)
+- Developer B ships AI-generated tests without reviewing them (Rubber Stamp)
+- Developer C refuses to use AI at all, even for high-value tasks
+- Developer D generates documentation that nobody verifies (Radio Silence)
+- Developer E accepts every autocomplete suggestion without reading it
+
+Each developer is a solo pilot — following their own instincts, with no shared protocols. The result is inconsistent code quality, security risks, and a codebase where nobody knows which code was AI-generated and which was hand-written.
+
+**The fix is CRM:** Shared protocols that every team member follows.
+
+1. **A prompt library** — consistent templates for common tasks
+2. **A review checklist** — what to look for in AI-generated code
+3. **Security rules** — what never goes into an AI prompt
+4. **An adoption guide** — how to start using AI for specific tasks
+5. **A retrospective cadence** — regular check-ins on what is working and what is not
+
+Crew Resource Management works because EVERY crew member follows the same protocols. Not just the captain, not just the enthusiast — everyone. The Silent Majority needs these protocols the most.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>Solo piloting AI tools on a team is as dangerous as solo piloting an aircraft.</strong>
+    Establish shared protocols: a prompt library, a review checklist, security rules, and regular
+    retrospectives. Crew Resource Management works because everyone follows the same protocols —
+    not just the enthusiasts.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+You now have a framework for team adoption: understanding your team's personas, a review checklist for AI-generated code, shared prompt templates, and sensible metrics.
+
+In **Chapter 11: Landing**, you will ship PilotBank with CI/CD, write a retrospective, and receive a decision tree for when to use AI — and when to fly manual.
+
+Crew briefing complete. All stations report ready.
