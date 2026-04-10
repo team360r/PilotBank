@@ -5,16 +5,259 @@ title: "Chapter 6: Holding Pattern"
 description: "Write tests with AI — and catch what it misses."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 6: Holding Pattern
 
-> *"Testing shows the presence, not the absence of bugs."* — Edsger Dijkstra
+> *"A holding pattern is not idle time. It is when you run every check you have."*
 
 **Estimated time:** ~30 min | **AI skill focus:** Test generation and review | **Branch:** `chapter-6-holding-pattern`
 
-**Anti-pattern:** Rubber Stamp — AI-generated tests that pass but do not actually test anything.
+**Anti-pattern:** Rubber Stamp — AI-generated tests that test the implementation rather than the behaviour.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: AI is Good at Test Boilerplate
+
+Writing tests has two parts: deciding WHAT to test and writing the code THAT tests it. AI is excellent at one and mediocre at the other.
+
+**AI excels at test scaffolding.** Setting up a widget test in Flutter requires wrapping the widget in `MaterialApp`, providing a `ProviderScope` with any necessary overrides, calling `pumpWidget`, and using the `find` API. This is mechanical code that follows documented patterns. AI generates it accurately and quickly.
+
+**AI is good at assertions on visible elements.** `expect(find.text('Sign in'), findsOneWidget)` and `expect(find.byType(ElevatedButton), findsOneWidget)` are straightforward assertions that the AI handles well. It can scan a widget tree and produce existence checks reliably.
+
+**AI is BAD at testing what should NOT happen.** Verifying that an error message is NOT visible, that a button is NOT enabled, that a navigation did NOT occur — these are the tests that catch real bugs, and they are the tests AI tends to skip.
+
+**AI is BAD at testing error states.** The happy path — valid credentials, correct input, expected data — is well-represented in training data. Error states — invalid credentials, empty input, network failures — are less common in examples, so AI generates fewer tests for them.
+
+**AI is BAD at edge cases.** Testing that a login form works with valid credentials is obvious. Testing that an error clears when the user starts typing after a failed login is a usability requirement that AI rarely infers from the code.
+
+The strategy for this chapter: you write the test descriptions (what to test), and AI writes the test implementations (how to test it).
+
+---
+
+## Section 2: The Tautological Test
+
+The worst AI test pattern is the tautological test — a test that verifies what the code does rather than what it should do. These tests always pass because they are derived from the implementation, not from the requirements.
+
+**Bad test — tests the implementation:**
+
+```dart
+test('sign in button exists', () {
+  // This test passes because the button exists in the code.
+  // If someone changes the button text to 'Log in', the test fails
+  // even though the behaviour is identical.
+  expect(find.text('Sign in'), findsOneWidget);
+});
+```
+
+This test verifies that a specific string exists on screen. It does not test any behaviour. If the button text changes from "Sign in" to "Log in," the test breaks even though the app still works.
+
+**Good test — tests the behaviour:**
+
+```dart
+test('submitting invalid credentials shows an error message', () {
+  // This tests BEHAVIOUR: the login flow, not a specific string.
+  // Enter credentials, tap submit, verify error appears.
+  // The implementation can change; the requirement stays the same.
+});
+```
+
+This test verifies that the login flow handles invalid credentials correctly. It exercises a complete user interaction — enter data, tap a button, observe the result. The implementation can change internally, but this test only breaks if the behaviour changes.
+
+**How to spot a tautological test:** If the test would still pass after deleting all the business logic and leaving only the UI, it is tautological. A test that checks "the screen has two TextFields" passes whether the login works or not. A test that checks "entering wrong credentials shows an error" only passes if the business logic is correct.
+
+---
+
+## Section 3: The "Spec First" Technique
+
+The most effective way to use AI for test writing is the "spec first" approach. You write the test descriptions as comments, then let the AI generate the test bodies.
+
+Start by writing your test plan as group and test descriptions:
+
+```dart
+group('Login screen', () {
+  // renders email and password fields
+  // renders sign in button
+  // shows error message on invalid credentials
+  // clears error when user starts typing after failed login
+});
+```
+
+These four lines are your specification. They describe the **behaviours** you want to verify, not the implementation details. Notice that none of them mention specific widget types, colours, or layout — they describe user-facing behaviour.
+
+Now prompt the AI:
+
+> "Generate widget test implementations for these test descriptions. Use ProviderScope wrapping a MaterialApp wrapping LoginScreen. For the invalid credentials test, enter 'wrong@email.com' and 'wrongpassword', tap the sign in button, and verify the error message appears. For the clear error test, trigger a login error first, then type in the email field and verify the error disappears."
+
+The AI fills in the test boilerplate — the `pumpWidget`, `enterText`, `tap`, and `expect` calls — while you have already defined what matters: the behaviours being tested.
+
+**Why this works:** You maintain control over what gets tested (the specification), while delegating the repetitive test setup code to the AI. The AI cannot skip an edge case you explicitly listed. And if the AI's test implementation does not match your specification, you will notice because the test description says one thing and the test body does another.
+
+---
+
+## Section 4: Write the Tests
+
+Now put the spec-first technique into practice. You will write tests for three areas: the login screen (widget tests), the dashboard screen (widget tests), and the data models (unit tests).
+
+### Login Screen Tests
+
+<DualPath exercise="login-tests">
+  <Manual>
+
+**By hand (~20 min):**
+
+Create `test/widget/login_screen_test.dart` with a helper function `createLoginScreen()` that wraps `LoginScreen` in `ProviderScope` and `MaterialApp`. Write these tests:
+
+1. **renders email and password fields** — find TextFields with "Email address" and "Password" label text
+2. **renders sign in button** — find an ElevatedButton with "Sign in" text
+3. **renders forgot password button** — find a TextButton with "Forgot password?" text
+4. **shows error message on invalid credentials** — enter wrong credentials, tap Sign in, verify error text appears
+5. **clears error when user types after failed login** — trigger error, type in email field, verify error disappears
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Generate a Flutter widget test file test/widget/login_screen_test.dart. Import flutter/material.dart, flutter_test, flutter_riverpod, login_screen.dart, and auth_provider.dart. Create a helper function createLoginScreen() that returns a ProviderScope wrapping a MaterialApp with LoginScreen as home. Write these tests in a group called 'Login screen': (1) 'renders email and password fields' — expect find.text for 'Email address' and 'Password', (2) 'renders sign in button' — expect find.text 'Sign in' and find.byType ElevatedButton, (3) 'renders forgot password button' — expect find.text 'Forgot password?' and find.byType TextButton, (4) 'shows error message on invalid credentials' — enterText wrong@email.com and wrongpassword in the two TextFields, tap Sign in, pumpAndSettle, expect find.text 'Invalid email or password', (5) 'clears error when user types after failed login' — trigger error first, then enterText in the first TextField, pumpAndSettle, expect error findsNothing."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your login screen tests:
+
+Does each test verify a **behaviour**, not just a widget's existence? Test 1-3 verify the UI renders correctly, which is acceptable for basic smoke tests. Tests 4-5 verify actual behaviour — these are the valuable ones.
+
+Does test 4 enter text, tap the button, AND pump the widget tree? All three steps are necessary. Missing `pumpAndSettle()` after the tap means the state change has not been processed and the assertion will fail.
+
+Does test 5 verify the error is present BEFORE typing, then absent AFTER typing? Testing only the "after" state does not prove the error was cleared — it might never have appeared.
+
+Does the helper function use `ProviderScope`? Without it, the `ConsumerStatefulWidget` cannot find the Riverpod container and the test crashes with "No ProviderScope found."
+
+  </CrossCheck>
+</DualPath>
+
+### Dashboard Screen Tests
+
+<DualPath exercise="dashboard-tests">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `test/widget/dashboard_screen_test.dart` with a helper that wraps `DashboardScreen` in `ProviderScope` and `MaterialApp`. Write:
+
+1. **renders greeting with user name** — find "Welcome back" and "Alex Johnson"
+2. **renders Your accounts subtitle** — find "Your accounts" text
+3. **displays three account cards** — find 3 `AccountCard` widgets
+4. **shows account names from mock data** — find "Current Account", "Savings Account", "Credit Card"
+5. **shows account balances** — find the formatted balance strings
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Generate a Flutter widget test file test/widget/dashboard_screen_test.dart. Import flutter_test, flutter_riverpod, MaterialApp, dashboard_screen.dart, and account_card.dart. Helper creates ProviderScope wrapping MaterialApp with DashboardScreen. Tests in group 'Dashboard screen': (1) 'renders greeting with user name' — find.textContaining 'Welcome back' and 'Alex Johnson', (2) 'renders Your accounts subtitle' — find.text 'Your accounts', (3) 'displays three account cards' — find.byType AccountCard findsNWidgets 3, (4) 'shows account names from mock data' — find the three account names, (5) 'shows account balances' — find the formatted balance strings from mock data."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your dashboard screen tests:
+
+Does the greeting test use `find.textContaining` rather than `find.text`? The greeting text includes both "Welcome back, " and the user name in the same widget, so an exact match on just "Alex Johnson" might not find it if it is part of a larger string.
+
+Does the account cards test check for exactly 3 cards? Not "at least one" but exactly 3. This verifies that all mock accounts are rendered.
+
+Do the balance tests use the exact formatted strings? The balance "4825.67" should appear as "£4825.67" — including the pound sign and two decimal places.
+
+  </CrossCheck>
+</DualPath>
+
+### Model Unit Tests
+
+<DualPath exercise="model-tests">
+  <Manual>
+
+**By hand (~5 min):**
+
+Create `test/unit/models_test.dart` with unit tests for:
+
+1. **User, Account, Transaction, AppNotification constructors** — verify fields are assigned correctly
+2. **AccountType enum** — verify it has three values (current, savings, credit)
+3. **TransactionType enum** — verify it has two values (credit, debit)
+4. **AppNotification default read** — verify `read` defaults to false
+5. **Mock data existence** — verify mockUser, mockAccounts, mockTransactions, mockNotifications have expected data
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Generate a Dart unit test file test/unit/models_test.dart. Import flutter_test, models.dart, and mock_data.dart from pilotbank package. Write groups: 'User model' — test constructor fields. 'Account model' — test constructor and negative balance for credit. 'Transaction model' — test constructor. 'AppNotification model' — test default read is false and explicit read true. 'AccountType enum' — test 3 values. 'TransactionType enum' — test 2 values. 'Mock data' — test mockUser name is Alex Johnson, mockAccounts has 3 items with all three types, mockTransactions has entries for acc-1, mockNotifications is not empty and has both read and unread items."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your model tests:
+
+Are the mock data tests checking actual values from `mock_data.dart`? The mock user's name should be "Alex Johnson" and email should be "alex@pilotbank.dev" — not placeholder values.
+
+Does the enum test verify the exact count? `AccountType.values.length` should be 3, not just "greater than 0."
+
+Does the AppNotification default test create a notification WITHOUT passing `read` and verify it is false? This tests the default parameter, not an explicit value.
+
+  </CrossCheck>
+</DualPath>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter test</code> from the project root. <strong>All tests should pass.</strong>
+    The tests verify real screens built in Chapters 4 and 5 — these are not placeholder tests.
+    If any test fails, read the error message carefully. The most common causes are: missing
+    <code>ProviderScope</code> wrapper, missing <code>pumpAndSettle()</code> after interactions,
+    or find queries that do not match the actual widget text.
+  </p>
+</div>
+
+---
+
+## Section 5: The Anti-Pattern — Rubber Stamp
+
+Chapter 6's anti-pattern is the **Rubber Stamp**.
+
+A rubber stamp approves everything without reading it. In code review, a rubber stamp is the reviewer who clicks "Approve" on every pull request without reading the changes. In AI-assisted testing, a rubber stamp is accepting every AI-generated test without checking what it actually verifies.
+
+**Signs you are rubber-stamping AI tests:**
+
+Every test passes on the first run. This sounds like a good thing, but consider: did you write the tests to verify behaviour, or did the AI generate tests based on what the code already does? If every test passes without you ever needing to fix a bug, the tests are not testing anything the code does not already do. They are tautological.
+
+No test verifies what should NOT happen. The AI generates `expect(find.text('Sign in'), findsOneWidget)` but not `expect(find.text('Invalid email or password'), findsNothing)` for the initial state. Testing absence is how you catch regressions — something appearing that should not be there.
+
+No edge-case tests. The AI tests the happy path — valid login credentials, expected account data, normal navigation. It does not test what happens with empty input, missing data, or error states. These are the tests that catch real bugs.
+
+All tests are existence checks. `findsOneWidget` appears in every assertion, but no test exercises a user interaction (enter text, tap button, verify result). Existence checks verify that the code renders something. Interaction tests verify that the code behaves correctly.
+
+**The fix:** Before accepting AI-generated tests, ask yourself: "If I deleted the business logic and left only the UI scaffolding, which tests would still pass?" Those tests are rubber stamps. The valuable tests are the ones that would fail if the logic broke.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>Approving every test without reading what it verifies is a rubber stamp.</strong>
+    AI-generated tests tend to verify what the code DOES, not what it SHOULD do. Always
+    check that your tests include behaviour verification, error states, and edge cases —
+    not just existence checks.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has real screens (login, dashboard, transfer) and real tests that verify actual behaviour. You have practised the spec-first technique — writing test descriptions yourself and letting AI fill in the implementation code.
+
+In **Chapter 7: Go-Around**, you will tackle a failed approach and learn how to restart effectively. Sometimes the AI takes you down a path that does not work, and the best decision is to go around — discard the attempt and try a different approach.
+
+Checks complete. Ready for the next circuit.

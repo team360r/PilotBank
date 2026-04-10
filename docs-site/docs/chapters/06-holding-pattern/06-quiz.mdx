@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/holding-pattern/quiz
+title: "Quiz: Holding Pattern"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Holding Pattern
+
+Test your understanding of Chapter 6 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={6}>
+
+<QuizQuestion
+  question="What is the difference between a tautological test and a behavioural test?"
+  options={[
+    "Tautological tests are slower to run because they test more code",
+    "A tautological test verifies what the code DOES (implementation); a behavioural test verifies what it SHOULD do (requirement)",
+    "Tautological tests use mocks while behavioural tests use real data",
+    "There is no meaningful difference — both terms describe the same kind of test"
+  ]}
+  correctIndex={1}
+  explanation="A tautological test is derived from the implementation — it passes because the code does what the code does. A behavioural test is derived from the requirement — it passes only if the code behaves correctly. If you delete the business logic, tautological tests might still pass (they only check the UI), but behavioural tests will fail."
+/>
+
+<QuizQuestion
+  question="What is the 'spec first' technique for writing tests with AI?"
+  options={[
+    "Writing the full test specification in a document before starting any code",
+    "Letting the AI generate both the test descriptions and implementations, then reviewing them",
+    "Writing test descriptions as comments first (what to test), then prompting the AI to generate the test bodies (how to test it)",
+    "Using the AI to read the source code and automatically generate a complete test suite"
+  ]}
+  correctIndex={2}
+  explanation="The spec-first technique means you write the test descriptions — what behaviours to verify — and the AI generates the implementation — the pumpWidget, enterText, tap, and expect calls. This ensures you control WHAT gets tested (behaviours, edge cases, error states) while delegating the repetitive boilerplate to the AI."
+/>
+
+<QuizQuestion
+  question="Why do Flutter widget tests need ProviderScope when testing a ConsumerWidget?"
+  options={[
+    "ProviderScope is required by the flutter_test package for all widget tests",
+    "Without ProviderScope, ConsumerWidget cannot find the Riverpod container and throws 'No ProviderScope found'",
+    "ProviderScope provides mock data for the tests",
+    "ProviderScope prevents the widget from making real network calls"
+  ]}
+  correctIndex={1}
+  explanation="ConsumerWidget (and ConsumerStatefulWidget) use ref.watch() and ref.read() to access Riverpod providers. These methods look up the provider container from the widget tree. Without a ProviderScope ancestor, there is no container, and the widget throws a 'No ProviderScope found' error. Every test that renders a Riverpod widget must include ProviderScope in the wrapper."
+/>
+
+<QuizQuestion
+  question="Why is pumpAndSettle() needed after tapping a button in a widget test?"
+  options={[
+    "It waits for network requests to complete",
+    "It processes all pending state changes, rebuilds, and animations so the widget tree reflects the result of the interaction",
+    "It ensures the test runs in the correct order",
+    "It is only needed for async operations, not synchronous button taps"
+  ]}
+  correctIndex={1}
+  explanation="When you call tester.tap(), the tap event is dispatched but the resulting state changes (setState, provider updates, navigation) have not been processed yet. pumpAndSettle() keeps pumping frames until there are no more pending frame callbacks — this means all state changes have been applied and the widget tree has been rebuilt. Without it, your assertions run against the pre-tap state."
+/>
+
+<QuizQuestion
+  question="What is the 'Rubber Stamp' anti-pattern in AI-generated testing?"
+  options={[
+    "Using the same test template for every widget without customisation",
+    "Accepting AI-generated tests without checking what they actually verify — tests that pass because they test the implementation, not the requirements",
+    "Generating too many tests that slow down the CI pipeline",
+    "Using AI to automatically approve pull requests"
+  ]}
+  correctIndex={1}
+  explanation="A rubber stamp in testing means accepting every AI-generated test at face value. The danger is that AI tends to generate existence checks (does this widget exist?) rather than behavioural checks (does this feature work correctly?). Signs of rubber-stamping: all tests pass on first run, no tests for error states, no edge cases, and every assertion is findsOneWidget."
+/>
+
+<QuizQuestion
+  question="Which of these tests is the MOST valuable for a login screen?"
+  options={[
+    "expect(find.byType(TextField), findsNWidgets(2))",
+    "expect(find.text('Sign in'), findsOneWidget)",
+    "After entering invalid credentials and tapping Sign in, expect(find.text('Invalid email or password'), findsOneWidget)",
+    "expect(find.byType(Scaffold), findsOneWidget)"
+  ]}
+  correctIndex={2}
+  explanation="The invalid credentials test is the most valuable because it verifies actual behaviour — the complete login flow with error handling. It enters data, triggers an action, and verifies the response. The other tests are existence checks that pass whether the login logic works or not. If you had to pick only one test, the behavioural one catches the most bugs."
+/>
+
+</Quiz>
