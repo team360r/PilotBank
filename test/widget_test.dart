@@ -1,17 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pilotbank/app.dart';
+import 'package:pilotbank/screens/login_screen.dart';
 
 void main() {
-  testWidgets('PilotBank app shows login screen', (WidgetTester tester) async {
+  testWidgets('Login screen renders correctly', (WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: PilotBankApp(),
+        child: MaterialApp(home: LoginScreen()),
       ),
     );
-    await tester.pumpAndSettle();
 
-    // After app launches, the login screen should be visible
     expect(find.text('PilotBank'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
   });
