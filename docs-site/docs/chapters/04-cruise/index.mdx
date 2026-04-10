@@ -5,16 +5,239 @@ title: "Chapter 4: Cruise Altitude"
 description: "Build UI from specifications with AI assistance."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 4: Cruise Altitude
 
-> *"Flying is learning how to throw yourself at the ground and miss."* — Douglas Adams
+> *"At cruise altitude, the autopilot handles heading and speed. You handle the decisions."*
 
 **Estimated time:** ~35 min | **AI skill focus:** UI generation from specs | **Branch:** `chapter-4-cruise`
 
-**Anti-pattern:** Armchair Architect — Relying on AI for design decisions it cannot make well.
+**Anti-pattern:** Armchair Architect — expecting pixel-perfect UI from text descriptions.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: Describing UI to AI
+
+Building a screen with AI is not the same as describing it to a designer. Designers interpret intent. AI implements instructions. The distinction matters because vague descriptions produce vague results.
+
+When you describe a screen to an AI coding assistant, you need to be explicit about four things:
+
+**Layout structure.** Tell the AI which layout widgets to use — `Column`, `Row`, `ListView`, `Stack`. Do not say "put these things on the screen" and expect the AI to choose the right layout. Specify the hierarchy. A login screen is a `Column` inside a `SingleChildScrollView` with horizontal padding. A dashboard is a `ListView` with a header and repeating cards.
+
+**Widget types.** Name the exact Material widgets. Say `TextField` not "input field." Say `ElevatedButton` not "button." Say `Card` with `InkWell` not "clickable card." The more precise your widget vocabulary, the more accurate the output.
+
+**Spacing and padding.** Numbers matter. "Add some padding" produces inconsistent results. "Add 24px horizontal padding and 16px between fields" produces consistent results. If you care about the layout, specify the values.
+
+**Component names.** Reference Material Design components by their Flutter class names. `AppBar`, `BottomNavigationBar`, `Scaffold`, `ListTile`. These are well-represented in training data, so the AI understands them precisely.
+
+AI is not a design tool — it builds what you describe. If your description is vague, the UI will be vague.
+
+---
+
+## Section 2: Iterative Refinement
+
+No prompt produces a perfect screen on the first try. Expect to iterate. This is not a failure — it is the process.
+
+The generate-preview-reprompt loop works like this:
+
+**Step 1 — Generate.** Write a prompt describing the screen structure. Accept the output.
+
+**Step 2 — Hot reload.** Save the file and look at the result on your device or emulator. What is wrong? What is close but not right?
+
+**Step 3 — Re-prompt with corrections.** Be specific. Not "make it look better" but "move the button below the text fields" or "add 16px padding around the card content" or "change the icon from star to chevron_right."
+
+**Step 4 — Repeat.** Each cycle gets the screen closer. Two to three iterations is typical. More than five iterations means your initial prompt was too vague — start over with a more specific description.
+
+The key insight is that corrections are cheap. A follow-up prompt like "add a SizedBox(height: 16) between the two TextFields" takes seconds to write and the AI applies it immediately. You do not need to get everything right in one prompt.
+
+---
+
+## Section 3: Build the Login Screen
+
+The login screen is the first real screen in PilotBank. It needs to interact with the auth provider, manage its own text controller state, and display error messages.
+
+<DualPath exercise="login-screen">
+  <Manual>
+
+**By hand (~15 min):**
+
+Create a `ConsumerStatefulWidget` in `lib/screens/login_screen.dart` with:
+
+1. Two `TextEditingController` fields — one for email, one for password
+2. A `dispose()` method that disposes both controllers
+3. A `_submit()` method that reads `authProvider.notifier` and calls `login()` with both field values
+4. A `Scaffold` body with a `SafeArea` wrapping a `SingleChildScrollView` and `Column`
+5. A `TextField` with `labelText: 'Email address'`, email keyboard type, and `textInputAction: TextInputAction.next`
+6. A `TextField` with `labelText: 'Password'` and `obscureText: true`
+7. An error `Text` widget that only appears when `authState.error` is not null, styled with `AppColors.error`
+8. An `ElevatedButton` with text "Sign in" styled with `AppColors.primary` background and white foreground
+9. A `TextButton` saying "Forgot password?" below the sign-in button
+10. An `onChanged` callback on both fields that calls `clearError()` when the user starts typing after an error
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Create a Flutter login screen as a ConsumerStatefulWidget in lib/screens/login_screen.dart. Import flutter_riverpod, auth_provider from ../providers/auth_provider.dart, and app_colors from ../theme/app_colors.dart. Create two TextEditingControllers for email and password, dispose them properly. The body should be a SafeArea wrapping a SingleChildScrollView with 24px horizontal padding. Add a Column with: a flight icon (size 64, AppColors.primary), 'PilotBank' heading text, 'Sign in to your account' subtitle, then a TextField with labelText 'Email address' and email keyboard type, a TextField with labelText 'Password' and obscureText true. Show auth error text in AppColors.error when authState.error is not null. Add an ElevatedButton saying 'Sign in' with AppColors.primary background and white text. Add a TextButton saying 'Forgot password?' below. The submit method should call ref.read(authProvider.notifier).login(email, password). Both text fields should call clearError() on change when there is an error showing."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `login_screen.dart`:
+
+Does the class extend `ConsumerStatefulWidget` (not `StatelessWidget` or `StatefulWidget`)? It needs both `ref` for Riverpod and `State` for the text controllers.
+
+Does the `dispose()` method call `.dispose()` on **both** controllers before calling `super.dispose()`? Memory leaks from undisposed controllers are a common AI omission.
+
+Does `_submit()` use `ref.read(authProvider.notifier).login(...)` with **read**, not watch? Using `watch` inside a callback would be incorrect — `read` is for one-time access in event handlers.
+
+Is the error message conditionally shown only when `authState.error != null`? Does it use `AppColors.error` for the text color?
+
+Does the `ElevatedButton` call `_submit` (not `_submit()`)? Passing the method reference is correct. Calling it with parentheses would invoke it during build.
+
+Do the `onChanged` callbacks clear the error? This is a usability detail — users should not see a stale error message while correcting their input.
+
+  </CrossCheck>
+</DualPath>
+
+---
+
+## Section 4: Build the Dashboard and Account Card
+
+The dashboard is the main screen after login. It shows a greeting and a list of account cards. Each card displays the account name, balance, and an icon for the account type. Tapping a card navigates to the transactions screen for that account.
+
+This exercise requires two files: a reusable `AccountCard` widget and the `DashboardScreen` that uses it.
+
+### Account Card Widget
+
+<DualPath exercise="account-card">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create `lib/widgets/account_card.dart` with a `StatelessWidget` that:
+
+1. Takes an `Account` and a `VoidCallback onTap` as required parameters
+2. Uses a `Card` with an `InkWell` for tap handling
+3. Has a `Row` with: a coloured icon container (48x48, rounded, showing an icon based on account type), the account name as `titleMedium` text, the balance formatted as currency with a pound sign, and a `chevron_right` icon
+4. Colours negative balances with `AppColors.error`
+5. Uses `AppColors.primary` with low opacity for the icon background
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Create a Flutter StatelessWidget in lib/widgets/account_card.dart. It takes a required Account (from ../data/models.dart) and a required VoidCallback onTap. Build a Card with InkWell wrapping a Padded Row (16px). The Row has: a 48x48 rounded container with AppColors.primary at 10% opacity containing an icon (account_balance for current, savings for savings, credit_card for credit), then an Expanded Column with the account name as titleMedium bold and the balance as bodyLarge with a pound sign prefix (red for negative balances using AppColors.error), then a chevron_right icon in AppColors.textSecondary. Import models.dart and app_colors.dart."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `account_card.dart`:
+
+Does the icon change based on `account.type`? There should be a switch or map that returns different `IconData` for `current`, `savings`, and `credit` account types.
+
+Is the balance formatted with a pound sign (£)? Does it use `toStringAsFixed(2)` for two decimal places?
+
+Does a negative balance (like the credit card at -£892.15) display in `AppColors.error` (red)? This is a common oversight — the AI may style all balances the same colour.
+
+Does the `InkWell` pass `onTap` through? Check that tapping the card actually triggers the callback.
+
+  </CrossCheck>
+</DualPath>
+
+### Dashboard Screen
+
+<DualPath exercise="dashboard-screen">
+  <Manual>
+
+**By hand (~10 min):**
+
+Create a `ConsumerWidget` in `lib/screens/dashboard_screen.dart` with:
+
+1. An `AppBar` with title "Dashboard"
+2. A `ListView` body with 16px padding
+3. A greeting: "Welcome back, \{user name\}" using `mockUser.name` from mock data
+4. A subtitle: "Your accounts"
+5. A list of `AccountCard` widgets, one per account from `accountsProvider`
+6. Each card's `onTap` navigates to `/transactions/\{account.id\}` using `context.go()`
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~3 min):**
+
+> "Create a Flutter ConsumerWidget in lib/screens/dashboard_screen.dart. Import flutter_riverpod, go_router, accounts_provider, mock_data, app_colors, and account_card. The AppBar title is 'Dashboard'. The body is a ListView with 16px padding containing: a headlineSmall bold text 'Welcome back, \{mockUser.name\}', a bodyLarge text 'Your accounts' in AppColors.textSecondary, then map over ref.watch(accountsProvider) to create AccountCard widgets where onTap calls context.go('/transactions/\{account.id\}')."
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review your `dashboard_screen.dart`:
+
+Does it extend `ConsumerWidget` and use `ref.watch(accountsProvider)` to get the account list? Using `watch` ensures the list updates if the data changes.
+
+Does the greeting use `mockUser.name` from the mock data import? Does it say "Welcome back, Alex Johnson" (not a hardcoded name)?
+
+Does each `AccountCard` receive an `onTap` that navigates to `/transactions/${account.id}`? The route must include the account ID as a path parameter.
+
+Does it use `context.go()` (not `context.push()`)? Within a `ShellRoute`, `go` replaces the current view while keeping the shell. Using `push` would stack screens and break the back navigation.
+
+  </CrossCheck>
+</DualPath>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter analyze</code> — you should see <strong>"No issues found!"</strong>
+    Run the app and sign in with <code>alex@pilotbank.dev</code> / <code>password</code>.
+    You should see the dashboard with three account cards. Tapping a card should navigate
+    to the transactions screen (still a placeholder). The bottom navigation should remain visible.
+  </p>
+</div>
+
+---
+
+## Section 5: The Anti-Pattern — Armchair Architect
+
+Chapter 4's anti-pattern is the **Armchair Architect**.
+
+The Armchair Architect expects AI to make design decisions. They write prompts like "make a beautiful login page" or "create a modern-looking dashboard" and expect the AI to produce something visually polished. Then they are disappointed when the result looks generic or mismatched.
+
+Here is the difference between a bad prompt and a good prompt:
+
+**Bad prompt:**
+
+> "Create a beautiful, modern login page for a banking app. Make it look professional and clean."
+
+This prompt tells the AI nothing useful. "Beautiful" is subjective. "Modern" is vague. "Professional and clean" could describe a thousand different designs. The AI will produce something generic — probably a centred column with default Material styling — because it has no specific instructions to follow.
+
+**Good prompt:**
+
+> "Create a login screen with a SafeArea wrapping a SingleChildScrollView. 24px horizontal padding. Column with: a flight icon (size 64, primary colour), 'PilotBank' as headlineMedium bold, 'Sign in to your account' as bodyLarge in textSecondary. Two TextFields with outlined borders — email with labelText 'Email address' and password with labelText 'Password' and obscureText. An ElevatedButton in primary colour with white text saying 'Sign in'. A TextButton saying 'Forgot password?' below."
+
+This prompt produces exactly what you described because it IS exactly what you described. There is no ambiguity for the AI to resolve. Every widget, every spacing value, every text string is specified.
+
+**The underlying principle:** AI implements. You design. The design decisions — what goes where, what colour, what size, what text — are yours. The AI's job is to turn those decisions into code. If you delegate the design decisions to the AI, you get the AI's taste, which is "whatever was most common in the training data."
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>You are the architect. AI is the builder.</strong> Specify exactly what you
+    want — layout, widgets, spacing, colours, text — and the AI will build it accurately.
+    Ask for "something nice" and you will get something average.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has its first real screens — a login flow with error handling and a dashboard with interactive account cards. You have practised the generate-preview-reprompt loop and learned to describe UI in terms the AI can execute precisely.
+
+In **Chapter 5: Turbulence**, you will build the transfer screen — a multi-step form with validation. This is where AI starts making subtle mistakes that look correct until you test edge cases. You will learn to stress-test AI output before trusting it.
+
+The skies are smooth at cruise altitude. Turbulence is next.

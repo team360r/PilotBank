@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/cruise/quiz
+title: "Quiz: Cruise Altitude"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Cruise Altitude
+
+Test your understanding of Chapter 4 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={4}>
+
+<QuizQuestion
+  question="Why should you name specific Flutter widgets (like TextField, ElevatedButton) in AI prompts instead of generic descriptions (like 'input field', 'button')?"
+  options={[
+    "Because generic descriptions cause syntax errors",
+    "Because AI tools only understand Flutter class names",
+    "Because specific widget names map directly to well-documented classes in the training data, producing more accurate output",
+    "Because Flutter does not have generic widget types"
+  ]}
+  correctIndex={2}
+  explanation="AI models have extensive training data for specific Flutter class names like TextField and ElevatedButton. Using exact names removes ambiguity — the AI knows precisely which widget to generate, including its constructor parameters and default behaviour. Generic descriptions like 'input field' force the AI to guess which widget you mean."
+/>
+
+<QuizQuestion
+  question="What is the generate-preview-reprompt loop?"
+  options={[
+    "A CI/CD pipeline that tests generated code automatically",
+    "An iterative process: generate code, hot reload to preview it, re-prompt with specific corrections, repeat",
+    "A technique for generating multiple versions and picking the best one",
+    "A pattern where the AI generates, previews, and corrects its own code"
+  ]}
+  correctIndex={1}
+  explanation="The generate-preview-reprompt loop is an iterative process where you generate code from a prompt, preview the result via hot reload, identify what needs changing, and re-prompt with specific corrections. Two to three iterations is typical. This works because corrections are cheap — small follow-up prompts take seconds."
+/>
+
+<QuizQuestion
+  question="Why does the LoginScreen use ConsumerStatefulWidget instead of ConsumerWidget?"
+  options={[
+    "Because ConsumerWidget does not support Riverpod",
+    "Because it needs both Riverpod access (ref) and mutable state for TextEditingControllers that must be disposed",
+    "Because ConsumerStatefulWidget is always preferred over ConsumerWidget",
+    "Because the login screen has animations that require a State object"
+  ]}
+  correctIndex={1}
+  explanation="The login screen needs ref.watch() and ref.read() for Riverpod (which ConsumerWidget provides), but it also needs TextEditingControllers that must be created in initState and disposed in dispose(). Only ConsumerStatefulWidget provides both capabilities. ConsumerWidget has no State lifecycle for managing disposable resources."
+/>
+
+<QuizQuestion
+  question="In the _submit() method, why does the code use ref.read(authProvider.notifier) instead of ref.watch(authProvider.notifier)?"
+  options={[
+    "read is faster than watch for provider access",
+    "watch cannot access the notifier, only the state",
+    "read is for one-time access in event handlers; watch is for reactive rebuilds in the build method",
+    "There is no difference — both work the same way in this context"
+  ]}
+  correctIndex={2}
+  explanation="ref.read() accesses a provider's value once without subscribing to changes. It is correct for event handlers like button presses. ref.watch() subscribes to the provider and triggers a rebuild when the value changes — it should only be used inside the build() method. Using watch in a callback is a Riverpod anti-pattern that can cause unexpected rebuilds."
+/>
+
+<QuizQuestion
+  question="What is the 'Armchair Architect' anti-pattern?"
+  options={[
+    "Writing overly detailed prompts that constrain the AI too much",
+    "Expecting AI to make design decisions by using vague prompts like 'make it beautiful' instead of specifying exact layout, widgets, and spacing",
+    "Designing the entire app architecture before writing any code",
+    "Using AI to generate architecture diagrams instead of code"
+  ]}
+  correctIndex={1}
+  explanation="The Armchair Architect delegates design decisions to the AI instead of specifying what they want. Prompts like 'make a beautiful login page' produce generic results because the AI has no specific instructions. The fix is to specify exact widgets, layout structure, spacing values, and colours — AI implements your design, it does not create it."
+/>
+
+<QuizQuestion
+  question="Why does the dashboard use context.go() instead of context.push() when navigating to the transactions screen?"
+  options={[
+    "go() is faster than push() for navigation",
+    "push() does not work with GoRouter",
+    "Within a ShellRoute, go() replaces the current view while keeping the shell visible; push() would stack screens and break back navigation",
+    "go() supports path parameters but push() does not"
+  ]}
+  correctIndex={2}
+  explanation="In a ShellRoute setup, context.go() navigates by replacing the content area while preserving the shell (the bottom navigation bar). context.push() would push a new screen on top of the entire shell, potentially hiding the bottom navigation and creating confusing back-button behaviour."
+/>
+
+</Quiz>
