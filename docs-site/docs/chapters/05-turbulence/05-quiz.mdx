@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/turbulence/quiz
+title: "Quiz: Turbulence"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Turbulence
+
+Test your understanding of Chapter 5 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={5}>
+
+<QuizQuestion
+  question="Why is AI-generated code that compiles and passes the happy path still dangerous?"
+  options={[
+    "Because AI-generated code always has security vulnerabilities",
+    "Because compiling only checks syntax, and happy-path testing only covers the expected flow — subtle bugs in edge cases remain undetected",
+    "Because AI uses outdated libraries that will break in production",
+    "Because the happy path is never the path real users take"
+  ]}
+  correctIndex={1}
+  explanation="Compiling verifies syntax and types, not logic. Happy-path testing verifies that correct input produces correct output. Neither catches edge cases like negative numbers, empty strings, boundary values, or special characters. The most dangerous AI bugs are the ones that look correct until a user does something unexpected."
+/>
+
+<QuizQuestion
+  question="A currency input validator uses RegExp(r'^\d+\.\d{2}$'). What is wrong with it?"
+  options={[
+    "It allows negative numbers",
+    "It requires exactly two decimal places, rejecting valid whole numbers like '50' and single-decimal amounts like '5.5'",
+    "It does not check for maximum amount",
+    "The regex syntax is invalid in Dart"
+  ]}
+  correctIndex={1}
+  explanation="The regex ^\d+\.\d{2}$ requires a dot followed by exactly two digits. This means '50' is rejected (no decimal point), '5.5' is rejected (only one decimal digit), and '100.0' is rejected. A better approach is to use double.tryParse() for parsing and separate logic for decimal-place limits, rather than a rigid regex."
+/>
+
+<QuizQuestion
+  question="When reporting a bug in AI-generated code, what produces the best fix?"
+  options={[
+    "Saying 'the validation is broken' and letting the AI figure out what to fix",
+    "Deleting the code and asking the AI to rewrite it from scratch",
+    "Describing the specific bug, explaining the business context, and requesting a fix with explicit constraints",
+    "Providing the error stack trace without additional context"
+  ]}
+  correctIndex={2}
+  explanation="The re-prompt loop works best with specific information: what the bug is ('accepts negative amounts'), why it matters ('bank transfers must be positive'), and what the fix should do ('reject amounts <= 0 with message X'). The more context you provide about the requirement, the more targeted the fix will be."
+/>
+
+<QuizQuestion
+  question="Why does the transfer screen use separate GlobalKey<FormState> for each Stepper step instead of one form for the whole screen?"
+  options={[
+    "Because Flutter does not allow nested Form widgets",
+    "Because each step needs independent validation — you validate only the current step when the user presses Continue, not all steps at once",
+    "Because GlobalKey must be unique per widget, so multiple forms need multiple keys",
+    "Because the Stepper widget requires a separate Form per step"
+  ]}
+  correctIndex={1}
+  explanation="Each step has its own form with its own validation. When the user presses Continue on Step 1, only the recipient fields should validate — not the amount or reference fields which the user has not filled in yet. Separate form keys allow _validateCurrentStep() to call validate() on just the current step's form."
+/>
+
+<QuizQuestion
+  question="What is the 'False Horizon' anti-pattern?"
+  options={[
+    "Writing tests that always pass regardless of the code",
+    "Using AI to generate UI that does not match the design mockups",
+    "Trusting code that looks correct and works on the happy path without testing edge cases — the code appears level but is subtly banking",
+    "Setting unrealistic deadlines based on AI-estimated development time"
+  ]}
+  correctIndex={2}
+  explanation="A false horizon in aviation is when visual cues mislead the pilot into thinking the aircraft is level when it is banking. In development, it is code that compiles, has sensible variable names, follows the right patterns, and works with valid input — but fails on edge cases. The fix is to trust your instruments (tests and edge-case verification) over your eyes (code reading)."
+/>
+
+<QuizQuestion
+  question="You type '0' into the transfer amount field and the validation accepts it. What is the most likely cause?"
+  options={[
+    "The validator checks 'amount != null' instead of 'amount > 0'",
+    "The TextEditingController is not connected to the TextFormField",
+    "The Form's autovalidateMode is set to disabled",
+    "The input formatter is stripping the zero before validation runs"
+  ]}
+  correctIndex={0}
+  explanation="The most common AI validation mistake for numeric fields is checking that a value exists (not null, not empty) without checking its range. Zero passes a null check, an empty-string check, and a 'is it a number?' check. Only an explicit 'amount > 0' check catches it. This is a classic false-horizon bug — the validation function exists and looks correct, but misses a key constraint."
+/>
+
+</Quiz>

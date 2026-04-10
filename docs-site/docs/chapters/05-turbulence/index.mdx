@@ -2,19 +2,191 @@
 sidebar_position: 1
 slug: /chapters/turbulence
 title: "Chapter 5: Turbulence"
-description: "Debug when AI gets it confidently wrong."
+description: "Debug AI mistakes in form validation and multi-step flows."
 ---
+
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Chapter 5: Turbulence
 
-> *"Good judgment comes from experience, and experience comes from bad judgment."* — Rita Mae Brown
+> *"Turbulence does not crash aeroplanes. Panic does."*
 
-**Estimated time:** ~30 min | **AI skill focus:** Debugging AI mistakes | **Branch:** `chapter-5-turbulence`
+**Estimated time:** ~30 min | **AI skill focus:** Debugging AI-generated code | **Branch:** `chapter-5-turbulence`
 
-**Anti-pattern:** False Horizon — Trusting confident-sounding AI output that is subtly wrong.
+**Anti-pattern:** False Horizon — trusting confident-sounding wrong code.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: The Confident Hallucination
+
+AI generates code that LOOKS correct. The syntax is clean. The variable names are sensible. It follows the patterns you described. It even compiles without errors. And it has a subtle bug that you will not catch until a user finds it.
+
+This is the most dangerous category of AI mistake. Not the obvious errors that fail to compile — those are easy. The dangerous mistakes are the ones that work perfectly on the happy path and fail on edge cases nobody tested.
+
+Here are three real patterns you will encounter:
+
+**Currency input validation that blocks valid amounts.** The AI writes a regex to validate currency input: `RegExp(r'^\d+\.\d{2}$')`. This requires exactly two decimal places. Users typing "50" (without decimals) get a validation error. Users typing "5.5" (one decimal place) get rejected. The regex is syntactically correct, logically reasonable, and wrong for real usage.
+
+**Multi-step forms that lose state.** The AI builds a Stepper where each step creates new Form widgets. When you move from Step 1 to Step 2 and back to Step 1, the text fields are empty. The controllers still have data, but the Form was rebuilt and the TextFormField widgets lost their connection to the controllers. The code compiles, each step works in isolation, and the flow is broken.
+
+**Validation that misses edge cases.** The AI adds a null check: `if (value != null)`. An empty string passes this check. The form submits with blank fields because `""` is not null. The validation looks thorough — there is an if statement that checks the value — but it does not check the right thing.
+
+None of these bugs produce compiler errors. None fail on the happy path. All of them fail when real users interact with the form in ways the AI did not anticipate.
+
+---
+
+## Section 2: Stress-Testing AI Output
+
+Before committing AI-generated code, run it through a mental (or actual) test matrix. The goal is not to test that the happy path works — the AI already tested that in its "imagination." The goal is to find the failures.
+
+**Edge cases to test on every form field:**
+
+Empty input — type nothing and submit. Does the validation catch it? Does it show a useful error message?
+
+Very long input — paste a 500-character string. Does the UI break? Does the field scroll properly? Is there a max length?
+
+Special characters — type `<script>`, `£€¥`, emoji, curly quotes. Does the app handle Unicode properly? Does it crash on special characters?
+
+Negative numbers — type `-50`. For a transfer amount, this should be rejected. Does the validation catch negative values, or only non-numeric input?
+
+**Boundary values:**
+
+Zero — type `0`. For a transfer amount, zero should be invalid. Does the validation check for "greater than zero" or just "is a number"?
+
+Maximum — if there is a limit (e.g. £25,000), type exactly that amount. Then type one penny more. Does the boundary work correctly?
+
+Decimal precision — type `5.999`. Does the validation allow three decimal places? Should it?
+
+**Null and empty states:**
+
+No accounts — what happens if the account list is empty? Does the dashboard show a blank screen, an error, or a helpful message?
+
+No transactions — what does the transactions screen show for a new account with no history?
+
+**The test takes 30 seconds.** For each form field, type the five worst things you can think of. If the validation survives, the code is probably solid. If it fails on any of them, you have found a bug before your users did.
+
+---
+
+## Section 3: The Re-Prompt Loop
+
+When AI gets something wrong, the quality of your bug report determines the quality of the fix. Vague complaints produce vague patches. Specific constraints produce targeted fixes.
+
+**Step 1 — Identify the specific bug.** Not "the validation is wrong" but "the amount field accepts negative numbers."
+
+**Step 2 — Explain the context.** Tell the AI why the current behaviour is wrong: "This is a bank transfer form. A transfer amount must be greater than zero and cannot exceed the available balance. The current validation only checks that the input is a number, but it allows negative values and zero."
+
+**Step 3 — Request a fix with constraints.** Not "fix the validation" but "Fix the \_validateAmount function to: reject empty input with message 'Please enter an amount', reject non-numeric input with 'Please enter a valid number', reject amounts less than or equal to zero with 'Amount must be greater than zero', reject amounts over 25000 with 'Amount cannot exceed £25,000'."
+
+**Step 4 — Verify the fix.** Run the same edge cases again. Type `-50`, `0`, `abc`, `999999`, empty string. Does the fix address all cases?
+
+The pattern is: specific problem, context for why it matters, constrained request, verification. The more context you give about WHY something is wrong, the better the AI understands the requirement and the less likely it is to introduce a new bug while fixing the old one.
+
+---
+
+## Section 4: Build the Transfer Screen
+
+The transfer screen is a three-step form using Flutter's `Stepper` widget. This is a more complex screen than the login — it has multiple form states, step-by-step navigation, validation at each step, and a confirmation dialog.
+
+This is also where AI is most likely to produce subtle bugs. Form validation has many edge cases, and the AI tends to handle the obvious ones while missing the tricky ones.
+
+<DualPath exercise="transfer-screen">
+  <Manual>
+
+**By hand (~25 min):**
+
+Create a `StatefulWidget` in `lib/screens/transfer_screen.dart` with:
+
+1. A `Stepper` with three steps: Recipient, Amount, Reference
+2. **Step 1 — Recipient:** Three `TextFormField` widgets — recipient name, sort code (numeric, 8 chars max with dash separator), account number (digits only, 8 chars max). All required with validation.
+3. **Step 2 — Amount:** A `TextFormField` with numeric keyboard and decimal support. Validation must reject: empty input, non-numeric input, amounts less than or equal to zero, amounts greater than £25,000. Use a dedicated `_validateAmount` method.
+4. **Step 3 — Reference:** A `TextFormField` for payment reference, optional, max 18 characters.
+5. A `_validateCurrentStep()` method that validates the correct form based on `_currentStep`
+6. Stepping forward only proceeds if validation passes
+7. On the final step, show an `AlertDialog` with all entered values for confirmation
+8. After confirmation, show a `SnackBar` and reset the form
+9. Dispose all five `TextEditingController` instances
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~8 min):**
+
+> "Create a Flutter StatefulWidget in lib/screens/transfer_screen.dart for a bank transfer form. Import material.dart, services.dart for input formatters, and app_colors.dart. Use a Stepper with 3 steps tracked by \_currentStep. Create 5 TextEditingControllers (name, sortCode, accountNumber, amount, reference) and 3 GlobalKey\<FormState\> keys. Dispose all controllers. Step 1 'Recipient': Form with 3 TextFormFields — recipient name (required), sort code (numeric with dashes, max 8 chars, hint '00-00-00'), account number (digits only, max 8 chars). Step 2 'Amount': Form with TextFormField, numeric keyboard with decimals, validator \_validateAmount that rejects empty, non-numeric (double.tryParse), zero or negative, and over 25000. Step 3 'Reference': Form with TextFormField, optional, max 18 characters. \_validateCurrentStep checks the correct form key. onStepContinue validates then advances or shows confirmation AlertDialog on the last step. The dialog shows all entered values. On confirm, show a SnackBar and reset the form. Style the continue button with AppColors.primary."
+
+  </AIAssisted>
+  <CrossCheck>
+
+**Before accepting, test these inputs in the amount field:**
+
+Type **`-50`** — does the validation reject it? The error message should say the amount must be greater than zero, not just "invalid number."
+
+Type **`abc`** — does it reject non-numeric input? The input formatter should block non-numeric characters, but the validator should also catch them as a fallback.
+
+Type **`0`** — does it reject zero? A transfer of zero pounds is not valid. Check that the validation uses `> 0`, not `>= 0`.
+
+Type **`999999999`** — does it reject amounts over the limit? The validation should check against the £25,000 maximum.
+
+Type **nothing** and press Continue — does it reject empty input? This is the most basic validation and the most commonly missed.
+
+**Also verify:**
+
+Are all five `TextEditingController` instances disposed in `dispose()`? Missing even one is a memory leak.
+
+Does the confirmation dialog display the correct values — the actual text from the controllers, not placeholder text?
+
+Does the Stepper prevent advancing from Step 1 without valid recipient details? Try pressing Continue with empty fields.
+
+Does stepping back from Step 2 to Step 1 preserve the entered recipient data?
+
+  </CrossCheck>
+</DualPath>
+
+<div className="pb-callout pb-callout--green">
+  <div className="pb-callout__header">Checkpoint</div>
+  <p>
+    Run <code>flutter analyze</code> — no issues. Run the app and navigate to the
+    Transfer tab. Complete all three steps with valid data — you should see the
+    confirmation dialog. Then go back and deliberately enter bad data in the amount
+    field to verify the validation catches all edge cases.
+  </p>
+</div>
+
+---
+
+## Section 5: The Anti-Pattern — False Horizon
+
+Chapter 5's anti-pattern is the **False Horizon**.
+
+In aviation, a false horizon occurs when visual references mislead the pilot into thinking the aircraft is level when it is actually banking. The instruments say one thing, the pilot's eyes say another. Trusting the wrong source leads to a crash.
+
+In AI-assisted development, a false horizon is code that looks correct. It compiles. The happy path works. The variable names make sense. The structure follows the patterns you asked for. You test it by entering valid data and it behaves perfectly. So you commit it.
+
+Two weeks later, a user enters `-1` in the transfer amount field and transfers negative money. Or they paste an emoji in the sort code field and the app crashes. Or they submit an empty reference and the backend rejects it with a 500 error because the AI's "optional" field did not handle null correctly.
+
+**Signs you are flying on a false horizon:**
+
+You tested the happy path and called it done. You read the code and it "looked right." You noticed the validation function and assumed it covered all cases without actually reading the logic. You saw the AI's confident code structure and trusted it.
+
+**The fix is instruments, not eyes.** In aviation, the fix for a false horizon is to trust your instruments over your visual perception. In development, the fix is to trust your tests over your code reading. Run the edge cases. Type the bad inputs. Click the buttons in the wrong order. The code is not correct until the instruments say it is correct — not until it looks correct.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>Trust your instruments, not your eyes.</strong> AI-generated code that compiles
+    and works on the happy path is not verified code. Test the edge cases —
+    empty inputs, negative numbers, maximum values, special characters — before
+    calling it done.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+You have built the most complex screen in PilotBank — a multi-step form with validation, navigation between steps, and a confirmation dialog. More importantly, you have practised the discipline of stress-testing AI output before trusting it.
+
+In **Chapter 6: Holding Pattern**, you will write tests for the screens you have built. AI is surprisingly good at generating test boilerplate — and surprisingly bad at testing what actually matters. You will learn to write test specifications and let AI fill in the implementation.
+
+Turbulence handled. Time to run the checks.
