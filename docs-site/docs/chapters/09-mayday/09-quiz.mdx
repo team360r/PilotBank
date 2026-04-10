@@ -1,0 +1,87 @@
+---
+sidebar_position: 2
+slug: /chapters/mayday/quiz
+title: "Quiz: Mayday Protocol"
+---
+
+import { Quiz, QuizQuestion } from '@site/src/components/Quiz';
+
+# Quiz: Mayday Protocol
+
+Test your understanding of Chapter 9 before moving on. You need all questions correct to pass.
+
+<Quiz chapter={9}>
+
+<QuizQuestion
+  question="When using an AI chat tool to debug authentication code, what should you do with API keys in the code before pasting?"
+  options={[
+    "Leave them in — the AI needs real keys to help debug",
+    "Encrypt them before pasting",
+    "Replace them with placeholders like 'YOUR_API_KEY_HERE' before pasting",
+    "Only paste them if you are using an enterprise plan"
+  ]}
+  correctIndex={2}
+  explanation="Always replace real credentials with placeholders before pasting code into any AI tool. The AI does not need your actual API key to help fix the code — it only needs the code structure and logic. Encryption does not help because the AI cannot read encrypted content. Enterprise plans may have better retention policies, but the safest approach is to never transmit secrets at all."
+/>
+
+<QuizQuestion
+  question="What is the risk of AI-suggested dependencies?"
+  options={[
+    "They are always outdated versions",
+    "The AI may suggest packages that do not exist, are abandoned, have vulnerabilities, or request unexpected permissions",
+    "They cost money to use",
+    "They only work with specific IDE versions"
+  ]}
+  correctIndex={1}
+  explanation="AI may hallucinate package names (suggesting packages that do not exist on pub.dev), suggest abandoned packages with unpatched vulnerabilities, or recommend packages that request permissions beyond what you need. Always verify: does the package exist? When was it last updated? What permissions does it require? How many likes and pub points does it have?"
+/>
+
+<QuizQuestion
+  question="Why does the .gitignore file matter for AI security?"
+  options={[
+    "It prevents AI tools from reading your code",
+    "It encrypts sensitive files automatically",
+    "It prevents secret files from being committed to repositories AND signals to AI tools which files should be treated as sensitive",
+    "It is required by all AI tool providers"
+  ]}
+  correctIndex={2}
+  explanation="A proper .gitignore prevents .env files, keystores, and Firebase config files from reaching remote repositories. In the context of AI tools that scan your project for context, it also signals which files contain sensitive data. It does not encrypt anything or block AI tools directly — but it is an essential layer in a defence-in-depth approach."
+/>
+
+<QuizQuestion
+  question="What is 'licence contamination' in the context of AI-generated code?"
+  options={[
+    "When AI generates code that requires a paid licence to run",
+    "When AI-generated code closely resembles GPL or copyleft-licensed code, potentially subjecting your proprietary project to those licence requirements",
+    "When you use an AI tool without a valid licence",
+    "When AI-generated code infringes on a software patent"
+  ]}
+  correctIndex={1}
+  explanation="AI models are trained on open-source code, including GPL and copyleft-licensed projects. When AI generates code that closely resembles a specific copyleft implementation, your proprietary project may be subject to that licence's requirements (such as making your source code public). The risk is higher for complex, domain-specific algorithms and lower for common patterns."
+/>
+
+<QuizQuestion
+  question="What is the 'Open Cockpit' anti-pattern?"
+  options={[
+    "Using AI tools in a public space where others can see your screen",
+    "Pasting production credentials, API keys, or proprietary code into AI prompts — exposing secrets to external servers",
+    "Using open-source AI tools instead of commercial ones",
+    "Leaving your IDE open with AI suggestions visible during screen sharing"
+  ]}
+  correctIndex={1}
+  explanation="The Open Cockpit anti-pattern is pasting secrets into AI prompts. Like an open cockpit at 30,000 feet, everything inside is exposed. Production API keys, database connection strings, OAuth tokens — once pasted, they exist on external servers. Even if the provider does not train on your data, the data was transmitted and may appear in logs. The fix: replace secrets with placeholders before pasting."
+/>
+
+<QuizQuestion
+  question="When conducting a security audit of a Flutter codebase with AI, what should you ask the AI to check?"
+  options={[
+    "Only the main.dart file for hardcoded secrets",
+    "Hardcoded credentials in all .dart files, .gitignore coverage for secret file patterns, and dependency versions in pubspec.yaml",
+    "Only the pubspec.yaml dependencies",
+    "The README file for any exposed information"
+  ]}
+  correctIndex={1}
+  explanation="A thorough security audit checks three areas: (1) all source files for hardcoded API keys, passwords, tokens, or connection strings; (2) the .gitignore for coverage of .env, keystore, and config files that may contain secrets; (3) pubspec.yaml dependencies for known vulnerabilities, abandoned packages, or suspicious permissions. Checking only one area leaves gaps."
+/>
+
+</Quiz>

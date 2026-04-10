@@ -5,16 +5,215 @@ title: "Chapter 9: Mayday Protocol"
 description: "Understand security and IP risks of AI tools."
 ---
 
+import { DualPath, Manual, AIAssisted, CrossCheck } from '@site/src/components/DualPath';
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Chapter 9: Mayday Protocol
 
 > *"Security is always excessive until it is not enough."* — Robbie Sinclair
 
 **Estimated time:** ~25 min | **AI skill focus:** Security and IP awareness | **Branch:** `chapter-9-mayday`
 
-**Anti-pattern:** Open Cockpit — Ignoring security and IP risks of AI-generated code.
+**Anti-pattern:** Open Cockpit — pasting secrets into AI prompts.
 
 ---
 
-:::info Coming Soon
-This chapter is under development. Check back soon for the full content.
-:::
+## Section 1: What Your AI Tool Sends
+
+When you use an AI coding assistant, your code leaves your machine. Understanding what is sent and where it goes is not paranoia — it is professional responsibility.
+
+**Inline completions (Copilot, Cody, Cursor tab):**
+When you type in your editor, the tool sends the current file content (and often neighbouring files) to a remote model for completion suggestions. This happens on every keystroke or pause. Your code is transmitted to the provider's servers, processed, and a suggestion is returned. Most providers state that they do not retain or train on this data, but the data IS transmitted.
+
+**Chat-based tools (ChatGPT, Claude, Gemini, Copilot Chat):**
+When you paste code into a chat prompt, the full text you paste is sent to the provider. If you paste an entire file, the entire file is sent. If you paste a file containing an API key, the API key is sent. The provider's retention policy determines how long that data exists on their servers.
+
+**IDE extensions with context:**
+Some tools automatically include open files, project structure, or terminal output as context. You may not have explicitly pasted a file, but the tool sent it anyway. Check your tool's settings to understand what context is included.
+
+**The key insight:** You control what you paste. You do not always control what your tool sends as context. Know your tool's behaviour before writing code that contains secrets.
+
+---
+
+## Section 2: The Five Rules of AI Security
+
+These rules apply regardless of which AI tool you use.
+
+### Rule 1: Never paste API keys, tokens, or passwords into AI prompts
+
+This is the most common and most dangerous mistake. You are debugging an authentication issue, so you paste the full config file — including the API key — into the chat. The key is now on the provider's servers.
+
+```dart
+// NEVER paste this into an AI prompt:
+const apiKey = 'sk-live-abc123def456ghi789';
+
+// Instead, replace secrets with placeholders:
+const apiKey = 'YOUR_API_KEY_HERE';
+```
+
+If you need AI help with authentication code, replace all real credentials with placeholders before pasting. The AI does not need your actual key to help you fix the code.
+
+### Rule 2: Never paste proprietary algorithms or trade secrets
+
+If your company's competitive advantage is a pricing algorithm, a recommendation engine, or a data processing pipeline, do not paste it into an AI tool. The code is transmitted to external servers. Even if the provider does not train on it, the data has left your controlled environment.
+
+### Rule 3: Check your tool's data retention policy
+
+Each provider has different policies. Some retain prompts for 30 days. Some allow you to opt out of training. Some enterprise plans guarantee no data retention. Read the policy for your specific tool and plan level.
+
+### Rule 4: Use .gitignore to prevent committing secrets
+
+Your `.gitignore` should include entries for:
+
+```gitignore
+# Secrets and environment files
+.env
+.env.*
+*.keystore
+*.jks
+*.p12
+*.pem
+*.key
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+```
+
+This is not just about AI — it prevents secrets from reaching any remote repository. But in the context of AI tools that scan your project for context, a proper `.gitignore` also signals which files should be treated as sensitive.
+
+### Rule 5: Review AI-suggested dependencies for known vulnerabilities
+
+When AI suggests adding a package, check it before adding it to your `pubspec.yaml`:
+
+1. Does the package exist on pub.dev? (AI sometimes hallucinates package names)
+2. When was it last updated? (Abandoned packages may have unpatched vulnerabilities)
+3. How many likes/pub points does it have? (Low scores may indicate low quality)
+4. Does it request permissions you do not expect? (A "date formatting" package should not need network access)
+
+---
+
+## Section 3: Build Notifications Screen and Run a Security Audit
+
+<DualPath exercise="notifications-security">
+  <Manual>
+
+**By hand (~15 min):**
+
+Replace the placeholder `lib/screens/notifications_screen.dart` with a full implementation:
+
+1. A `ConsumerWidget` that watches `notificationsProvider` and `unreadCountProvider`
+2. An app bar with a "Mark all read" text button (visible only when unread count is greater than zero)
+3. An unread count header banner showing "N unread notifications"
+4. A `ListView.separated` of notification tiles, each with a leading icon (active for unread, muted for read), title, body, and time-ago trailing text
+5. Tapping a notification marks it as read
+6. An empty state with an icon and "No notifications" text
+
+Then conduct a manual security audit of the PilotBank codebase. Check for hardcoded credentials in every `.dart` file, verify the `.gitignore` covers common secret file patterns, and review `pubspec.yaml` dependencies.
+
+  </Manual>
+  <AIAssisted>
+
+**With your copilot (~5 min):**
+
+> "Replace the placeholder notifications_screen.dart with a ConsumerWidget. Watch notificationsProvider and unreadCountProvider. Show a Mark all read TextButton.icon in the app bar when unreadCount > 0. Show an unread count banner below the app bar. Build a ListView.separated of ListTiles — each with a CircleAvatar icon (notifications_active and primary colour for unread, notifications_none and grey for read), the notification title (bold if unread), body (max 2 lines), and a trailing time-ago string. Tapping marks the notification as read. Show an empty state when there are no notifications."
+
+Then run a security audit:
+
+> "Scan the PilotBank codebase for security issues: (1) Are there any hardcoded API keys, tokens, passwords, or secrets in any .dart file? (2) Does the .gitignore cover .env files, keystore files, and Firebase config files? (3) Are there any dependencies in pubspec.yaml with known vulnerabilities or that look suspicious?"
+
+  </AIAssisted>
+  <CrossCheck>
+
+Review the notifications screen:
+
+Does the "Mark all read" button disappear after tapping it? It should — once all notifications are read, `unreadCount` drops to zero and the button's `if` condition hides it.
+
+Does the unread banner update in real time? Tapping a notification should decrement the count. If the banner still shows the old count, the provider is not notifying listeners correctly.
+
+Review the security audit:
+
+Did the AI find the hardcoded credentials in `auth_provider.dart`? The `login` method checks `email == 'alex@pilotbank.dev' && password == 'password'`. In a real app, these would be secrets. The AI should flag this — and if it does not, that is a gap in its analysis.
+
+Did the AI check `.gitignore`? It should confirm that `.env`, `*.keystore`, and `google-services.json` are covered.
+
+Did the AI verify that all `pubspec.yaml` dependencies exist on pub.dev? This is worth checking manually for the first few packages in any project.
+
+  </CrossCheck>
+</DualPath>
+
+---
+
+## Section 4: Licence Contamination
+
+AI models are trained on vast amounts of open-source code. When the AI generates code for you, some of that code may closely resemble code from GPL, AGPL, or other copyleft-licensed projects. This creates a legal risk.
+
+**How it happens:**
+
+1. You ask the AI to implement a specific algorithm
+2. The AI generates code that is very similar to a GPL-licensed implementation it was trained on
+3. You commit the code to your proprietary project
+4. Your project may now be subject to the GPL's copyleft requirements
+
+**The risk is real but manageable:**
+
+For common patterns (sorting, date formatting, list operations), the risk is low — there are only so many ways to write a bubble sort. For complex, domain-specific algorithms (particular compression schemes, specific protocol implementations), the risk is higher because the AI may be reproducing a specific implementation rather than generating one from principles.
+
+**What you can do:**
+
+1. For critical code, ask the AI to explain its approach before generating code — this helps you assess whether it is implementing from principles or reproducing a specific implementation
+2. Run generated code through a licence scanning tool if your organisation requires it
+3. For trivial code (UI layouts, data classes, standard patterns), the risk is negligible
+4. When in doubt, write the algorithm yourself and use AI only for the boilerplate around it
+
+---
+
+## Section 5: The Anti-Pattern — Open Cockpit
+
+Chapter 9's anti-pattern is the **Open Cockpit**.
+
+An open cockpit at 30,000 feet is catastrophic. Everything inside is exposed to the elements — instruments freeze, papers scatter, the pilot cannot function. An open AI prompt with your production secrets is the digital equivalent. Everything you paste is exposed to external servers.
+
+**How it happens:**
+
+1. You are debugging a production authentication issue
+2. You paste the full configuration file into the AI chat — including API keys and database connection strings
+3. The AI helps you fix the bug
+4. The fix works, you move on
+5. Your production credentials are now on the AI provider's servers
+
+**The rationalisation:**
+
+"But the provider says they don't train on my data." Even if true, the data was transmitted. It exists in server logs, in transit, and in temporary storage. A data breach at the provider, a misconfigured logging system, or a change in retention policy — any of these exposes your credentials.
+
+"It's just a development key." Development keys often have the same permissions as production keys. And developers frequently copy-paste the wrong key.
+
+"I'll rotate the key later." You will not. In six months, that key will still be active, and you will have forgotten that it was ever pasted into an AI prompt.
+
+**Signs of an open cockpit:**
+- You paste entire config files without redacting secrets
+- You share database connection strings to get help with queries
+- You paste OAuth tokens to debug authentication flows
+- You include `.env` file contents in your prompts
+
+**The fix is simple:** Before pasting ANY code into an AI tool, scan it for secrets. Replace real values with placeholders. This takes ten seconds and eliminates the risk entirely.
+
+<div className="pb-callout pb-callout--amber">
+  <div className="pb-callout__header">Flight Rule</div>
+  <p>
+    <strong>Never paste API keys, tokens, passwords, or connection strings into AI prompts.</strong>
+    Replace them with placeholders before pasting. The AI does not need your real credentials
+    to help you fix the code. An open cockpit at altitude is unsurvivable — and an exposed
+    production secret is the start of a very bad day.
+  </p>
+</div>
+
+---
+
+## What's Next
+
+PilotBank now has a notifications screen with unread tracking and mark-as-read functionality. You have conducted a security audit, reviewed your `.gitignore`, and learned the five rules of AI security.
+
+In **Chapter 10: Crew Resource Management**, you will shift from individual practices to team adoption — how to introduce AI tools across a team without the chaos of everyone doing their own thing.
+
+Mayday acknowledged. Cockpit secured.
